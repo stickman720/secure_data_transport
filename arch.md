@@ -3,7 +3,8 @@
 <h2>aouth:</h2>
 
 <h3>[POST] : /api/v1/register</h3>
-```
+
+<code>
 input:
     {
         "username" : "str username",
@@ -29,4 +30,4 @@ response:
     {
         "error" : "internal server error"
     }
-```
+</code>
