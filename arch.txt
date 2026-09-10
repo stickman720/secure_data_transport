@@ -2,7 +2,7 @@ Endpoints
 
 aouth:
 
-[POST] : /api/v1/register
+[POST] : /api/v1/auth/register
 
 input:
     {
@@ -17,15 +17,126 @@ response:
         "message" : "user created",
         "user"    : "userstruct user" 
     }
+......................................
     status 409
     {
         "error" : "this username is alredy taken"
     }
+......................................
     status 422
     {
         "error" : "a user with this email is alredy registered"
     }
+......................................
     status 500
     {
         "error" : "internal server error"
     }
+......................................
+    status 409
+    {
+        "error" : "bad request"
+    }
+
+
+
+
+[POST] : /api/v1/aouth/login
+
+input :
+    {
+        "username" : "str username",
+        "password" : "str password"
+    }
+
+response‌ :
+
+    status 200
+    {
+        "token" : "jwt token"
+        "refresh-token" : "str token-uuid4"
+    }
+..................................
+    status 401
+    {
+        "error" : "username or password is not corect"
+    }
+..................................
+    status 409
+    {
+        "error" : "bad request"
+    }
+
+
+
+
+[POST] : /api/v1/auth/forgotpassword
+
+input : 
+    {
+        "email":"str email"
+    }
+
+response : 
+    status 200
+    {
+        "message" : "change password link sent to your email" -> [GET] : /web/auth/changepassword/{token_uuid4}
+    }
+...................................
+    status 404
+    {
+        "error" : "this email not registered"
+    }
+...................................
+    status 409
+    {
+        "error" : "bad request"
+    }
+
+
+
+
+
+[POST] : /api/v1/auth/changepassword/{token-uuid4}
+
+input : 
+    {
+        "new-password" : "str new-password"
+    }
+
+response:
+    status 200
+    {
+        "message" : "password changed"
+    }
+...............................
+    status 401
+    {
+        "error" : "invalid token"
+    }
+
+
+
+[POST] : /api/v1/auth/refresh-login/
+
+input : 
+    {
+        "refresh-token" : "str refresh-taken"
+    }
+
+response : 
+    status 200 
+    {
+        "jwt-token" : "str token" 
+    }
+.................................
+    status 401
+    {
+        "error" : "invalid token"
+    }
+.................................
+    status 409
+    {
+        "error" : "bas request"
+    }
+
