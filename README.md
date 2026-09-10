@@ -1,5 +1,5 @@
 # secure_data_transport
-<p>Hello in this progect I trying to create a secure data management.</p>
+<p>Hello in this progect I trying to create a secure data transport.</p>
 <p>With this app You can make communication beetwen diferent parts of Your buisness or diferent teams .</p>
 <p>You also can manage resorces like storage space or band width for Your diferent teams</p></br>
 
