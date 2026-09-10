@@ -1,5 +1,8 @@
 Endpoints
 
+
+
+
 aouth:
 
 [POST] : /api/v1/auth/register
@@ -20,23 +23,38 @@ response:
 ......................................
     status 409
     {
+        "code"  : "USERNAME_ALREDY_EXISTS",
         "error" : "this username is alredy taken"
     }
 ......................................
-    status 422
-    {
+    status 409
+    {   
+        "code"  : "EMAIL_ALREDY_EXISTS",
         "error" : "a user with this email is alredy registered"
     }
 ......................................
     status 500
-    {
+    {   
+        "code"  :"INTERNAL_SERVER_ERROR",
         "error" : "internal server error"
     }
 ......................................
-    status 409
+    status 400
     {
+        "code"  : "BAD_REQUEST",
         "error" : "bad request"
     }
+
+
+
+[POST] : /api/v1/aouth/verifi-email/
+
+input :
+    {
+        "email"        : "str email",
+        "verifi-code"  : "str verifi code"
+    }
+
 
 
 
@@ -53,20 +71,27 @@ response‌ :
 
     status 200
     {
-        "token" : "jwt token"
+        "token" : "jwt token",
         "refresh-token" : "str token-uuid4"
     }
 ..................................
     status 401
     {
+        "code"  : "UNAUTHORIZED",
         "error" : "username or password is not corect"
     }
 ..................................
-    status 409
+    status 400
     {
+        "code"  : "BAD_REQUEST"
         "error" : "bad request"
     }
-
+.................................
+    status 500
+    {   
+        "code"  :"INTERNAL_SERVER_ERROR",
+        "error" : "internal server error"
+    }
 
 
 
@@ -85,15 +110,22 @@ response :
 ...................................
     status 404
     {
+        "code"  : "NOT_FOUND",
         "error" : "this email not registered"
     }
 ...................................
-    status 409
+    status 400
     {
+        "code"  : "BAD_REQUEST",
         "error" : "bad request"
     }
 
-
+...................................
+    status 500
+    {   
+        "code"  :"INTERNAL_SERVER_ERROR",
+        "error" : "internal server error"
+    }
 
 
 
@@ -111,10 +143,16 @@ response:
     }
 ...............................
     status 401
-    {
+    {   
+        "code"  : "UNAUTHORIZED",
         "error" : "invalid token"
     }
-
+...............................
+    status 500
+    {   
+        "code"  :"INTERNAL_SERVER_ERROR",
+        "error" : "internal server error"
+    }
 
 
 [POST] : /api/v1/auth/refresh-login/
@@ -132,11 +170,140 @@ response :
 .................................
     status 401
     {
+        "code"  : "UNAUTHORIZED",
         "error" : "invalid token"
     }
 .................................
-    status 409
+    status 400
     {
+        "code"  : "BAD_REQUEST"
         "error" : "bas request"
     }
+.................................
+    status 500
+    {   
+        "code"  :"INTERNAL_SERVER_ERROR",
+        "error" : "internal server error"
+    }
+
+
+
+teams:
+
+[POST] : /api/v1/teams
+
+input : 
+    {
+        "jwt-token":"str token"
+        "team" : {
+            "title"               :‌ "str title",
+            "user-count"          : int counts of users,
+            "rate-limit-per-user" : int request per secound,
+            "storage-space"       : int size -> GB,
+            "transfear"           : int size -> GB,
+        }
+    }
+
+response : 
+    status 200 
+    {
+        "message" : "team created"
+        "team" : team struct
+    }
+...............................
+    status 401
+    {
+        "code"  : "UNAUTHORIZED"
+        "error" : "invalid token"
+    }
+...............................
+    status 400
+    {
+        "code"  : "BAD_REQUEST"
+        "error" : "bad request"
+    }
+...............................
+    status 409
+    {
+        "code"  : "TEAM_ALREDY_EXIST"
+        "error" : "team with this title is alredy exist"
+    }
+...............................
+    status 403
+    {
+        "code"  : "NOT_ENOUGH_RESOURCES"
+        "error" : "not enough resources"
+    }
+...............................
+    status 500
+    {   
+        "code"  :"INTERNAL_SERVER_ERROR",
+        "error" : "internal server error"
+    }
+
+
+[GET] : /api/v1/teams/{jwt-token}
+
+input:
+    nothing
+
+response:
+    status 200
+    {
+        "teams" : [team structs]
+    }
+................................
+    status 401
+    {
+        "code"  : "UNAUTHORIZED",
+        "error" : "invalid token"
+    }
+................................
+    status 400
+    {
+        "code"  : BAD_REQUEST,
+        "error" : "bad request" 
+    }
+................................
+    status 500
+    {   
+        "code"  :"INTERNAL_SERVER_ERROR",
+        "error" : "internal server error"
+    }
+
+
+
+[DELETE] : /api/v1/teams/{jwt-token}
+
+input : 
+    {
+        "title" : "str title"
+    }
+
+response : 
+    status 200
+    {
+        "team" : team struct
+    }
+.....................................
+    status 401
+    {
+        "code"  : "UNAUTHORIZED",
+        "error" : "invalid token" 
+    }
+.....................................
+    status 404
+    {
+        "code"  : "TEAM_NOT_FOUND",
+        "error" : "there is not any team with this title for you"
+    }
+.....................................
+    status 500
+    {
+        "code"  : "INTERNAL_SERVER_ERROR",
+        "error" : "internal server error"
+    }
+
+
+
 
