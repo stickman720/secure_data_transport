@@ -1,0 +1,7 @@
+version: "1"
+packages:
+  - name: "db"
+    path: "sqlcpkg"
+    queries: "./sqlc/query.sql"
+    schema: "./sqlc/schema.sql"
+    engine: "sqlite"
