@@ -23,13 +23,16 @@ func startapp(){
 	if err != nil {
 		panic(err)
 	}
-	mailer := widget.Mailer{
+	
+	var mailer widget.Mailer = widget.SMTPMailer{
 		From:     os.Getenv("EMAIL"),
 		Password: os.Getenv("EMAIL_PASSWORD"),
 		Host:     os.Getenv("HOST"),
 		Port:     os.Getenv("PORT"),
 	}
+
 	_ = mailer
+	
 
 	db, err := sql.Open("sqlite","./secure_data_transport.db")
 	if err != nil {

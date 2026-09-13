@@ -8,7 +8,7 @@ import (
 
 
 
-type Mailer struct {
+type SMTPMailer struct {
 	From     string
 	Password string
 	Host     string
@@ -17,7 +17,7 @@ type Mailer struct {
 
 
 
-func (m *Mailer) SendMail(to []string , subject , body string) error {
+func (m SMTPMailer) SendMail(to []string , subject , body string) error {
 	from := m.From
 	password := m.Password
 
