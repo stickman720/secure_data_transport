@@ -31,8 +31,13 @@ func startapp(){
 		Port:     os.Getenv("PORT"),
 	}
 
-	_ = mailer
 	
+	
+
+	var cach widget.Cach = widget.NewRedisCach(os.Getenv("REDIS_ADDR"), os.Getenv("REDIS_PASSWORD"))
+	
+
+
 
 	db, err := sql.Open("sqlite","./secure_data_transport.db")
 	if err != nil {
@@ -45,12 +50,12 @@ func startapp(){
 
 
 	ag := r.Group("/api/auth")
-	api.InitAuthRoutes(ag , queries)
+	api.InitAuthRoutes(ag , queries , &cach , mailer)
 
 	
 
 
-	r.Run(":8000")
+	r.Run(":8080")
 
 }
 
