@@ -184,7 +184,14 @@ func (ah *AuthHandler)VerifyEmail(c *gin.Context){
 
 
 
+func (ah * AuthHandler) Login (c *gin.Context ){
+	input := &api_schema.LoginRequest{}
+	err := c.ShouldBindJSON(input)
 
+	if err == nil {
+		
+	}
+} 
 
 
 
