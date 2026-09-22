@@ -102,3 +102,37 @@ func (q *Queries) UpdateUserPassword(ctx context.Context, arg UpdateUserPassword
 	_, err := q.db.ExecContext(ctx, updateUserPassword, arg.PasswordHash, arg.ID)
 	return err
 }
+
+const userExists = `-- name: UserExists :one
+SELECT EXISTS(SELECT 1 FROM users WHERE username = ? OR email = ?) AS user_exists
+`
+
+type UserExistsParams struct {
+	Username string
+	Email    string
+}
+
+func (q *Queries) UserExists(ctx context.Context, arg UserExistsParams) (bool, error) {
+	row := q.db.QueryRowContext(ctx, userExists, arg.Username, arg.Email)
+	var user_exists bool
+	err := row.Scan(&user_exists)
+	return user_exists, err
+}
+
+const verifyUser = `-- name: VerifyUser :one
+update users set isactive = 1 where id = ? and isactive = 0 returning id, username, email, password_hash, created_at, isactive
+`
+
+func (q *Queries) VerifyUser(ctx context.Context, id int64) (User, error) {
+	row := q.db.QueryRowContext(ctx, verifyUser, id)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Email,
+		&i.PasswordHash,
+		&i.CreatedAt,
+		&i.Isactive,
+	)
+	return i, err
+}
