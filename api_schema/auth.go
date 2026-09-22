@@ -10,4 +10,7 @@ type RegisterRequest struct {
 }
 
 
+type VerifyEmailRequest struct {
+	Code string `json:"code"`
+}
 
