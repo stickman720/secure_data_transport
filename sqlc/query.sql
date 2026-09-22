@@ -22,3 +22,6 @@ SELECT EXISTS(SELECT 1 FROM users WHERE username = ? OR email = ?) AS user_exist
 
 -- name: VerifyUser :one
 update users set isactive = 1 where id = ? and isactive = 0 returning *;
+
+-- name: Login :one
+SELECT * FROM users WHERE username = ? AND password_hash = ?;

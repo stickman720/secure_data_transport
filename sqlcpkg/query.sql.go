@@ -89,6 +89,29 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User,
 	return i, err
 }
 
+const login = `-- name: Login :one
+SELECT id, username, email, password_hash, created_at, isactive FROM users WHERE username = ? AND password_hash = ?
+`
+
+type LoginParams struct {
+	Username     string
+	PasswordHash string
+}
+
+func (q *Queries) Login(ctx context.Context, arg LoginParams) (User, error) {
+	row := q.db.QueryRowContext(ctx, login, arg.Username, arg.PasswordHash)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Email,
+		&i.PasswordHash,
+		&i.CreatedAt,
+		&i.Isactive,
+	)
+	return i, err
+}
+
 const updateUserPassword = `-- name: UpdateUserPassword :exec
 UPDATE users SET password_hash = ? WHERE id = ?
 `
