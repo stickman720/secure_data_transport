@@ -125,9 +125,9 @@ func (ah *AuthHandler)VerifyEmail(c *gin.Context){
 	input := &api_schema.VerifyEmailRequest{}
 
 	if err := c.ShouldBindJSON(input); err != nil{
-		c.JSON(http.StatusBadRequest , gin.H{
-			"code" : "BAD_REQUEST", 
-			"error": "bad request",
+		c.JSON(http.StatusBadRequest , api_schema.ErrorResponse{
+			Code : "BAD_REQUEST", 
+			Error: "bad request",
 		})
 		return
 	}
@@ -139,45 +139,45 @@ func (ah *AuthHandler)VerifyEmail(c *gin.Context){
 	
 	if err != nil{
 		if err.Error() == "key dosnt exist or expired"{
-			c.JSON(http.StatusNonAuthoritativeInfo , gin.H{
-				"code":"UNAUTHORISE",
-				"error":"invalid code or expired code",
+			c.JSON(http.StatusNonAuthoritativeInfo , api_schema.ErrorResponse{
+				Code:"UNAUTHORISE",
+				Error:"invalid code or expired code",
 			})
 			return
 		}	
-		c.JSON(http.StatusInternalServerError , gin.H{
-			"code":"INTERNAL_SERVER_ERROR",
-			"error":"internal server error 1",
+		c.JSON(http.StatusInternalServerError , api_schema.ErrorResponse{
+			Code:"INTERNAL_SERVER_ERROR",
+			Error:"internal server error 1",
 		})
 		return
 	}
 	
 	user , err := ah.quesries.GetUserByID(c , ch.UserId)
 	if err != nil{
-		c.JSON(http.StatusInternalServerError , gin.H{
-			"code":"INTERNAL_SERVER_ERROR",
-			"error":"internal server error 2",
+		c.JSON(http.StatusInternalServerError , api_schema.ErrorResponse{
+			Code:"INTERNAL_SERVER_ERROR",
+			Error:"internal server error 2",
 		})
 		return
 	}
 
 	if user.Isactive.Bool {
-		c.JSON(http.StatusOK , gin.H{
-			"message":"user already verified",
+		c.JSON(http.StatusOK , api_schema.RegisterResponse{
+			Message:"user already verified",
 		})
 		return
 	}
 
 	user , err = ah.quesries.VerifyUser(c , ch.UserId)
 	if err != nil{
-		c.JSON(http.StatusInternalServerError , gin.H{
-			"code":"INTERNAL_SERVER_ERROR",
-			"error":"internal server error 3",
+		c.JSON(http.StatusInternalServerError , api_schema.ErrorResponse{
+			Code:"INTERNAL_SERVER_ERROR",
+			Error:"internal server error 3",
 		})
 		return
 	}
-	c.JSON(http.StatusOK , gin.H{
-		"user":user,
+	c.JSON(http.StatusOK , api_schema.VerifyEmailResponse{
+		User:user,
 	})
 
 }
