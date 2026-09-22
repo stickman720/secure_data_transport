@@ -1,6 +1,9 @@
 package widget
 
-import "context"
+import (
+	"context"
+	"time"
+)
 
 
 type Mailer interface {
@@ -11,6 +14,6 @@ type Mailer interface {
 
 type Cach interface {
 	// exp time is minot
-	Set (ctx context.Context , key string , value string , exp_time int) error
-	Get (ctx context.Context , key string) (string , error) 
+	Set (ctx context.Context , key string , value interface{} , exp_time time.Duration) error
+	Get (ctx context.Context , key string , out any) (error) 
 }

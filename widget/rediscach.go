@@ -3,8 +3,9 @@ package widget
 import (
 	"context"
 	"time"
-
 	"github.com/redis/go-redis/v9"
+	"encoding/json"
+	"fmt"
 )
 
 
@@ -39,25 +40,38 @@ func NewRedisCach(addr string , password string) RedisCach{
 	return rc
 }
 
-func (rc RedisCach) Set (ctx context.Context , key , value string , exp_time int) error {
-	timeout , cancel := context.WithTimeout(ctx , time.Second)
+func (rc RedisCach) Set (ctx context.Context , key string , value interface{} , exp_time time.Duration) error {
+	to , cancel := context.WithTimeout(ctx , time.Second)
 
+	fmt.Println(key)
 	defer cancel()
 
-	return rc.Rdb.Set(timeout , key , value , time.Duration(exp_time)).Err()
+	vj , err := json.Marshal(value)
+	if err != nil{
+		return RedisError{msg:"unable to marshal data"}
+	}
+
+	return rc.Rdb.Set(to , key , vj , exp_time).Err()
+
 
 }
 
-func (rc RedisCach) Get (ctx context.Context , key string ) (string , error) {
+func (rc RedisCach) Get (ctx context.Context , key string , out any) (error) {
 	timeout , cancel := context.WithTimeout(ctx , time.Second)
-
+	fmt.Println(key)
 	defer cancel()
 
 	val , err := rc.Rdb.Get(timeout , key).Result()
-	if err != redis.Nil {
-		return "" , RedisError{msg : "key dosnt exist or expired"}
+	if err == redis.Nil {
+		return RedisError{msg : "key dosnt exist or expired"}
 	} else if err != nil{
-		return "" , RedisError{msg : "unexpected error"}
+		return RedisError{msg : "unexpected error"}
 	}
-	return val , nil
+
+	err = json.Unmarshal([]byte(val) , out)
+	if err != nil {
+		return RedisError{"unable to unmarshal"}
+	}
+
+	return nil
 }

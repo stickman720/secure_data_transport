@@ -1,7 +1,6 @@
 package widget
 
 import (
-	"fmt"
 	"net/smtp"
 	"log"
 )
@@ -24,17 +23,16 @@ func (m SMTPMailer) SendMail(to []string , subject , body string) error {
 
 
 	smtpHost := m.Host
-	smtpPort := "587"
+	smtpPort := m.Port
 
-	message := []byte("subject : " + subject + "\n" + body)
+	message := []byte("subject : " + subject + "\r\n\r\n" + body)
 
 	auth := smtp.PlainAuth("", from, password, smtpHost)
-
-	err := smtp.SendMail(smtpHost+":"+smtpPort, auth, from, to, message)
+	_ = auth
+	err := smtp.SendMail(smtpHost+":"+smtpPort, nil, from, to, message)
 	if err != nil {
 		log.Fatal(err)
+		return err
 	}
-	fmt.Println("Email sent successfully!")
-
 	return nil
 }
