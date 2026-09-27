@@ -5,21 +5,21 @@
 package db
 
 import (
-	"database/sql"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Refreshtk struct {
-	ID     int64
-	Userid int64
+	ID     int32
+	Userid int32
 	Token  string
 }
 
 type User struct {
-	ID           int64
+	ID           int32
 	Username     string
 	Email        string
 	PasswordHash string
-	CreatedAt    sql.NullTime
-	Isactive     sql.NullBool
+	CreatedAt    pgtype.Timestamp
+	Isactive     pgtype.Bool
 	Role         string
 }

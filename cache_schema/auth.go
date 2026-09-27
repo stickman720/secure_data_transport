@@ -3,6 +3,6 @@ package cache_schema
 
 
 type EmailVerificationCache struct{
-	UserId int64 `json:"userid"`
+	UserId int32 `json:"userid"`
 	VerificationCode string `json:"verificationcode"`
 }

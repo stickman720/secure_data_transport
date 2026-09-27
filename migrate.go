@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	_"embed"
-	"database/sql"
+	"os"
+	"github.com/joho/godotenv"
+	"github.com/jackc/pgx/v5"
 )
 
 
@@ -14,13 +16,20 @@ func migrate(){
 
 	ctx := context.Background()
 
-	db, err := sql.Open("sqlite","./secure_data_transport.db")
+
+	err := godotenv.Load()
 	if err != nil {
 		panic(err)
 	}
 
-	if _ , err := db.ExecContext(ctx, ddl); err != nil {
+
+
+	db, err := pgx.Connect(ctx, os.Getenv("DB_URL"))
+	if err != nil {
 		panic(err)
 	}
+	defer db.Close(ctx)
+
+	
 
 }

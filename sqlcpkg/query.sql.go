@@ -9,33 +9,37 @@ import (
 	"context"
 )
 
-const cleaneRefreshToken = `-- name: CleaneRefreshToken :exec
-DELETE FROM refreshtk WHERE userid = (SELECT id FROM users WHERE username = ?)
+const cleanRefreshToken = `-- name: CleanRefreshToken :exec
+DELETE FROM refreshtk
+WHERE userid = (SELECT id FROM users WHERE username = $1)
 `
 
-func (q *Queries) CleaneRefreshToken(ctx context.Context, username string) error {
-	_, err := q.db.ExecContext(ctx, cleaneRefreshToken, username)
+func (q *Queries) CleanRefreshToken(ctx context.Context, username string) error {
+	_, err := q.db.Exec(ctx, cleanRefreshToken, username)
 	return err
 }
 
 const createRefreshToken = `-- name: CreateRefreshToken :one
-INSERT INTO refreshtk (userid , token) VALUES (? , ?) RETURNING id, userid, token
+INSERT INTO refreshtk (userid, token) VALUES ($1, $2)
+RETURNING id, userid, token
 `
 
 type CreateRefreshTokenParams struct {
-	Userid int64
+	Userid int32
 	Token  string
 }
 
 func (q *Queries) CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) (Refreshtk, error) {
-	row := q.db.QueryRowContext(ctx, createRefreshToken, arg.Userid, arg.Token)
+	row := q.db.QueryRow(ctx, createRefreshToken, arg.Userid, arg.Token)
 	var i Refreshtk
 	err := row.Scan(&i.ID, &i.Userid, &i.Token)
 	return i, err
 }
 
 const createUser = `-- name: CreateUser :one
-INSERT INTO users (username, email, password_hash , role) VALUES (?, ?, ? , ?) RETURNING id
+INSERT INTO users (username, email, password_hash, role)
+VALUES ($1, $2, $3, $4)
+RETURNING id
 `
 
 type CreateUserParams struct {
@@ -45,33 +49,33 @@ type CreateUserParams struct {
 	Role         string
 }
 
-func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (int64, error) {
-	row := q.db.QueryRowContext(ctx, createUser,
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (int32, error) {
+	row := q.db.QueryRow(ctx, createUser,
 		arg.Username,
 		arg.Email,
 		arg.PasswordHash,
 		arg.Role,
 	)
-	var id int64
+	var id int32
 	err := row.Scan(&id)
 	return id, err
 }
 
 const deleteUser = `-- name: DeleteUser :exec
-DELETE FROM users WHERE id = ?
+DELETE FROM users WHERE id = $1
 `
 
-func (q *Queries) DeleteUser(ctx context.Context, id int64) error {
-	_, err := q.db.ExecContext(ctx, deleteUser, id)
+func (q *Queries) DeleteUser(ctx context.Context, id int32) error {
+	_, err := q.db.Exec(ctx, deleteUser, id)
 	return err
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, username, email, password_hash, created_at, isactive, role FROM users WHERE email = ?
+SELECT id, username, email, password_hash, created_at, isactive, role FROM users WHERE email = $1
 `
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
-	row := q.db.QueryRowContext(ctx, getUserByEmail, email)
+	row := q.db.QueryRow(ctx, getUserByEmail, email)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -86,11 +90,11 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, username, email, password_hash, created_at, isactive, role FROM users WHERE id = ?
+SELECT id, username, email, password_hash, created_at, isactive, role FROM users WHERE id = $1
 `
 
-func (q *Queries) GetUserByID(ctx context.Context, id int64) (User, error) {
-	row := q.db.QueryRowContext(ctx, getUserByID, id)
+func (q *Queries) GetUserByID(ctx context.Context, id int32) (User, error) {
+	row := q.db.QueryRow(ctx, getUserByID, id)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -105,11 +109,11 @@ func (q *Queries) GetUserByID(ctx context.Context, id int64) (User, error) {
 }
 
 const getUserByUsername = `-- name: GetUserByUsername :one
-SELECT id, username, email, password_hash, created_at, isactive, role FROM users WHERE username = ?
+SELECT id, username, email, password_hash, created_at, isactive, role FROM users WHERE username = $1
 `
 
 func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User, error) {
-	row := q.db.QueryRowContext(ctx, getUserByUsername, username)
+	row := q.db.QueryRow(ctx, getUserByUsername, username)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -124,7 +128,7 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User,
 }
 
 const login = `-- name: Login :one
-SELECT id, username, email, password_hash, created_at, isactive, role FROM users WHERE username = ? AND password_hash = ?
+SELECT id, username, email, password_hash, created_at, isactive, role FROM users WHERE username = $1 AND password_hash = $2
 `
 
 type LoginParams struct {
@@ -133,7 +137,7 @@ type LoginParams struct {
 }
 
 func (q *Queries) Login(ctx context.Context, arg LoginParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, login, arg.Username, arg.PasswordHash)
+	row := q.db.QueryRow(ctx, login, arg.Username, arg.PasswordHash)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -148,21 +152,21 @@ func (q *Queries) Login(ctx context.Context, arg LoginParams) (User, error) {
 }
 
 const updateUserPassword = `-- name: UpdateUserPassword :exec
-UPDATE users SET password_hash = ? WHERE id = ?
+UPDATE users SET password_hash = $1 WHERE id = $2
 `
 
 type UpdateUserPasswordParams struct {
 	PasswordHash string
-	ID           int64
+	ID           int32
 }
 
 func (q *Queries) UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) error {
-	_, err := q.db.ExecContext(ctx, updateUserPassword, arg.PasswordHash, arg.ID)
+	_, err := q.db.Exec(ctx, updateUserPassword, arg.PasswordHash, arg.ID)
 	return err
 }
 
 const userExists = `-- name: UserExists :one
-SELECT EXISTS(SELECT 1 FROM users WHERE username = ? OR email = ?) AS user_exists
+SELECT EXISTS(SELECT 1 FROM users WHERE username = $1 OR email = $2) AS user_exists
 `
 
 type UserExistsParams struct {
@@ -171,14 +175,18 @@ type UserExistsParams struct {
 }
 
 func (q *Queries) UserExists(ctx context.Context, arg UserExistsParams) (bool, error) {
-	row := q.db.QueryRowContext(ctx, userExists, arg.Username, arg.Email)
+	row := q.db.QueryRow(ctx, userExists, arg.Username, arg.Email)
 	var user_exists bool
 	err := row.Scan(&user_exists)
 	return user_exists, err
 }
 
 const validRefreshToken = `-- name: ValidRefreshToken :one
-SELECT u.username , u.role FROM users u JOIN refreshtk r ON r.userid = u.id WHERE r.token = ? AND u.isactive = 1 LIMIT 1
+SELECT u.username, u.role
+FROM users u
+JOIN refreshtk r ON r.userid = u.id
+WHERE r.token = $1 AND u.isactive = TRUE
+LIMIT 1
 `
 
 type ValidRefreshTokenRow struct {
@@ -187,18 +195,21 @@ type ValidRefreshTokenRow struct {
 }
 
 func (q *Queries) ValidRefreshToken(ctx context.Context, token string) (ValidRefreshTokenRow, error) {
-	row := q.db.QueryRowContext(ctx, validRefreshToken, token)
+	row := q.db.QueryRow(ctx, validRefreshToken, token)
 	var i ValidRefreshTokenRow
 	err := row.Scan(&i.Username, &i.Role)
 	return i, err
 }
 
 const verifyUser = `-- name: VerifyUser :one
-update users set isactive = 1 where id = ? and isactive = 0 returning id, username, email, password_hash, created_at, isactive, role
+UPDATE users
+SET isactive = TRUE
+WHERE id = $1 AND isactive = FALSE
+RETURNING id, username, email, password_hash, created_at, isactive, role
 `
 
-func (q *Queries) VerifyUser(ctx context.Context, id int64) (User, error) {
-	row := q.db.QueryRowContext(ctx, verifyUser, id)
+func (q *Queries) VerifyUser(ctx context.Context, id int32) (User, error) {
+	row := q.db.QueryRow(ctx, verifyUser, id)
 	var i User
 	err := row.Scan(
 		&i.ID,

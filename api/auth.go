@@ -60,6 +60,7 @@ func (ah *AuthHandler)registerhandler(c *gin.Context) {
 	})
 
 	if err != nil{
+		fmt.Println(err)
 		c.JSON(http.StatusInternalServerError , gin.H{
 			"error" : "unable to complete request, please try again later",
 		})
@@ -238,7 +239,7 @@ func (ah * AuthHandler) Login (c *gin.Context ){
 
 	refresh_token := "refresh-tk->"+uuid.New().String()
 
-	err = ah.quesries.CleaneRefreshToken(c , user.Username)
+	err = ah.quesries.CleanRefreshToken(c , user.Username)
 	
 	crt , ccr := context.WithTimeout(c , time.Second)
 	defer ccr()

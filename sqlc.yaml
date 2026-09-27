@@ -1,11 +1,11 @@
 version: "2"
 sql:
   - name: "db"
-    engine: "sqlite"
+    engine: "postgresql"
     schema: "sqlc/schema.sql"
     queries: "sqlc/query.sql"
     gen:
       go:
         package: "db"
         out: "sqlcpkg"
-        sql_package: "database/sql"   # یا "pgx/v5" برای postgres
+        sql_package: "pgx/v5"   # یا "pgx/v5" برای postgres

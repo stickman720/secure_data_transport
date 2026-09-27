@@ -1,13 +1,13 @@
 package main
 
 import (
-	"database/sql"
+	"context"
 	"os"
 	"secure_data_transport/api"
 	"secure_data_transport/core"
 	sqlcpkg "secure_data_transport/sqlcpkg"
 	"secure_data_transport/widget"
-
+    "github.com/jackc/pgx/v5"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	_ "modernc.org/sqlite"
@@ -19,7 +19,9 @@ import (
 
 func startapp(){
 
-		r := gin.Default()
+	r := gin.Default()
+	ctx := context.Background()
+
 
 	err := godotenv.Load()
 	if err != nil {
@@ -35,12 +37,13 @@ func startapp(){
 	//==============================================================
 	var cach widget.Cach = widget.NewRedisCach(os.Getenv("REDIS_ADDR"), os.Getenv("REDIS_PASSWORD"))
 	//==============================================================
-	db, err := sql.Open("sqlite","./secure_data_transport.db")
+	conn, err := pgx.Connect(ctx, os.Getenv("DB_URL"))
 	if err != nil {
 		panic(err)
 	}
+	defer conn.Close(ctx)
 
-	queries := sqlcpkg.New(db)
+	queries := sqlcpkg.New(conn)
 	//==============================================================
 	security := core.Security{
 		JWTSecret: os.Getenv("JWT_SECRET"),
