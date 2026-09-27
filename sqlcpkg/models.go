@@ -8,6 +8,12 @@ import (
 	"database/sql"
 )
 
+type Refreshtk struct {
+	ID     int64
+	Userid int64
+	Token  string
+}
+
 type User struct {
 	ID           int64
 	Username     string
@@ -15,4 +21,5 @@ type User struct {
 	PasswordHash string
 	CreatedAt    sql.NullTime
 	Isactive     sql.NullBool
+	Role         string
 }

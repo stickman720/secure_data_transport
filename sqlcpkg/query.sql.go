@@ -9,18 +9,49 @@ import (
 	"context"
 )
 
+const cleaneRefreshToken = `-- name: CleaneRefreshToken :exec
+DELETE FROM refreshtk WHERE userid = (SELECT id FROM users WHERE username = ?)
+`
+
+func (q *Queries) CleaneRefreshToken(ctx context.Context, username string) error {
+	_, err := q.db.ExecContext(ctx, cleaneRefreshToken, username)
+	return err
+}
+
+const createRefreshToken = `-- name: CreateRefreshToken :one
+INSERT INTO refreshtk (userid , token) VALUES (? , ?) RETURNING id, userid, token
+`
+
+type CreateRefreshTokenParams struct {
+	Userid int64
+	Token  string
+}
+
+func (q *Queries) CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) (Refreshtk, error) {
+	row := q.db.QueryRowContext(ctx, createRefreshToken, arg.Userid, arg.Token)
+	var i Refreshtk
+	err := row.Scan(&i.ID, &i.Userid, &i.Token)
+	return i, err
+}
+
 const createUser = `-- name: CreateUser :one
-INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?) RETURNING id
+INSERT INTO users (username, email, password_hash , role) VALUES (?, ?, ? , ?) RETURNING id
 `
 
 type CreateUserParams struct {
 	Username     string
 	Email        string
 	PasswordHash string
+	Role         string
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (int64, error) {
-	row := q.db.QueryRowContext(ctx, createUser, arg.Username, arg.Email, arg.PasswordHash)
+	row := q.db.QueryRowContext(ctx, createUser,
+		arg.Username,
+		arg.Email,
+		arg.PasswordHash,
+		arg.Role,
+	)
 	var id int64
 	err := row.Scan(&id)
 	return id, err
@@ -36,7 +67,7 @@ func (q *Queries) DeleteUser(ctx context.Context, id int64) error {
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, username, email, password_hash, created_at, isactive FROM users WHERE email = ?
+SELECT id, username, email, password_hash, created_at, isactive, role FROM users WHERE email = ?
 `
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
@@ -49,12 +80,13 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.PasswordHash,
 		&i.CreatedAt,
 		&i.Isactive,
+		&i.Role,
 	)
 	return i, err
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, username, email, password_hash, created_at, isactive FROM users WHERE id = ?
+SELECT id, username, email, password_hash, created_at, isactive, role FROM users WHERE id = ?
 `
 
 func (q *Queries) GetUserByID(ctx context.Context, id int64) (User, error) {
@@ -67,12 +99,13 @@ func (q *Queries) GetUserByID(ctx context.Context, id int64) (User, error) {
 		&i.PasswordHash,
 		&i.CreatedAt,
 		&i.Isactive,
+		&i.Role,
 	)
 	return i, err
 }
 
 const getUserByUsername = `-- name: GetUserByUsername :one
-SELECT id, username, email, password_hash, created_at, isactive FROM users WHERE username = ?
+SELECT id, username, email, password_hash, created_at, isactive, role FROM users WHERE username = ?
 `
 
 func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User, error) {
@@ -85,12 +118,13 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User,
 		&i.PasswordHash,
 		&i.CreatedAt,
 		&i.Isactive,
+		&i.Role,
 	)
 	return i, err
 }
 
 const login = `-- name: Login :one
-SELECT id, username, email, password_hash, created_at, isactive FROM users WHERE username = ? AND password_hash = ?
+SELECT id, username, email, password_hash, created_at, isactive, role FROM users WHERE username = ? AND password_hash = ?
 `
 
 type LoginParams struct {
@@ -108,6 +142,7 @@ func (q *Queries) Login(ctx context.Context, arg LoginParams) (User, error) {
 		&i.PasswordHash,
 		&i.CreatedAt,
 		&i.Isactive,
+		&i.Role,
 	)
 	return i, err
 }
@@ -142,8 +177,24 @@ func (q *Queries) UserExists(ctx context.Context, arg UserExistsParams) (bool, e
 	return user_exists, err
 }
 
+const validRefreshToken = `-- name: ValidRefreshToken :one
+SELECT u.username , u.role FROM users u JOIN refreshtk r ON r.userid = u.id WHERE r.token = ? AND u.isactive = 1 LIMIT 1
+`
+
+type ValidRefreshTokenRow struct {
+	Username string
+	Role     string
+}
+
+func (q *Queries) ValidRefreshToken(ctx context.Context, token string) (ValidRefreshTokenRow, error) {
+	row := q.db.QueryRowContext(ctx, validRefreshToken, token)
+	var i ValidRefreshTokenRow
+	err := row.Scan(&i.Username, &i.Role)
+	return i, err
+}
+
 const verifyUser = `-- name: VerifyUser :one
-update users set isactive = 1 where id = ? and isactive = 0 returning id, username, email, password_hash, created_at, isactive
+update users set isactive = 1 where id = ? and isactive = 0 returning id, username, email, password_hash, created_at, isactive, role
 `
 
 func (q *Queries) VerifyUser(ctx context.Context, id int64) (User, error) {
@@ -156,6 +207,7 @@ func (q *Queries) VerifyUser(ctx context.Context, id int64) (User, error) {
 		&i.PasswordHash,
 		&i.CreatedAt,
 		&i.Isactive,
+		&i.Role,
 	)
 	return i, err
 }

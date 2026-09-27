@@ -1,7 +1,11 @@
-version: "1"
-packages:
+version: "2"
+sql:
   - name: "db"
-    path: "sqlcpkg"
-    queries: "./sqlc/query.sql"
-    schema: "./sqlc/schema.sql"
     engine: "sqlite"
+    schema: "sqlc/schema.sql"
+    queries: "sqlc/query.sql"
+    gen:
+      go:
+        package: "db"
+        out: "sqlcpkg"
+        sql_package: "database/sql"   # یا "pgx/v5" برای postgres
