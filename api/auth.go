@@ -3,17 +3,20 @@ package api
 import (
 	"context"
 	"crypto/sha256"
+	"database/sql"
 	"encoding/hex"
+	"fmt"
 	"net/http"
 	"secure_data_transport/api_schema"
+	"secure_data_transport/cache_schema"
 	sqlcpkg "secure_data_transport/sqlcpkg"
 	"secure_data_transport/widget"
 	"time"
+
+	"secure_data_transport/core"
+
 	"github.com/gin-gonic/gin"
-	"secure_data_transport/cache_schema"
 	"github.com/google/uuid"
-	"fmt"
-	
 )
 
 
@@ -27,10 +30,11 @@ type AuthHandler struct{
 	quesries *sqlcpkg.Queries
 	cach widget.Cach
 	mailer widget.Mailer
+	security core.Security
 }
 
-func NewAuthHandler(queries *sqlcpkg.Queries, cach widget.Cach , mailer widget.Mailer) *AuthHandler{
-	return &AuthHandler{quesries: queries, cach: cach , mailer: mailer}
+func NewAuthHandler(queries *sqlcpkg.Queries, cach widget.Cach , mailer widget.Mailer , security core.Security) *AuthHandler{
+	return &AuthHandler{quesries: queries, cach: cach , mailer: mailer,security: security}
 }
 
 
@@ -72,13 +76,14 @@ func (ah *AuthHandler)registerhandler(c *gin.Context) {
 
 
 
-	h := sha256.Sum256([]byte(input.Password + input.Email))
+	h := sha256.Sum256([]byte(input.Password))
 	passwordhash := hex.EncodeToString(h[:])
 
 	userid , err := ah.quesries.CreateUser(c , sqlcpkg.CreateUserParams{
 		Username: input.Username,
 		Email: input.Email,
 		PasswordHash: string(passwordhash),
+		Role: "owner",
 	})
 
 	if err != nil{
@@ -188,9 +193,67 @@ func (ah * AuthHandler) Login (c *gin.Context ){
 	input := &api_schema.LoginRequest{}
 	err := c.ShouldBindJSON(input)
 
-	if err == nil {
-		
+	if err != nil {
+		c.JSON(http.StatusBadRequest , api_schema.ErrorResponse{
+			Code : "BAD_REQUEST",
+			Error: "bad request",
+		})
+		return
 	}
+
+
+	h := sha256.Sum256([]byte(input.Password))
+	passwordhash := hex.EncodeToString(h[:])
+
+	lt , ltc := context.WithTimeout(c , time.Second)
+	defer ltc()
+	user , err := ah.quesries.Login(lt , sqlcpkg.LoginParams{
+		Username: input.Username,
+		PasswordHash: passwordhash,
+	})
+
+	if err != nil {
+		if err == sql.ErrNoRows{
+			c.JSON(http.StatusUnauthorized , api_schema.ErrorResponse{
+				Code : "UNAUTHORIZED",
+				Error: "username or password is not corect",
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError , api_schema.ErrorResponse{
+			Code : "INTERNAL_SERVER_ERROR",
+			Error: "internal server error",
+		})
+		return
+	}
+
+	token , err   := ah.security.CreateJWT(user.Username , user.Role , time.Minute * 15)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError , api_schema.ErrorResponse{
+			Code: "INTERNAL_SERVER_ERROR",
+			Error: "internal server error",
+		})
+		return
+	}
+
+	refresh_token := "refresh-tk->"+uuid.New().String()
+
+	err = ah.quesries.CleaneRefreshToken(c , user.Username)
+	
+	crt , ccr := context.WithTimeout(c , time.Second)
+	defer ccr()
+	ah.quesries.CreateRefreshToken(crt,sqlcpkg.CreateRefreshTokenParams{
+		Token: refresh_token,
+		Userid: user.ID,
+	})
+
+	
+
+	c.JSON(http.StatusOK , api_schema.LoginResponse{
+		Token: token,
+		RefreshToken: refresh_token,
+	})
+	
 } 
 
 

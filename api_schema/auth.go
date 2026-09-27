@@ -47,3 +47,9 @@ type RegisterResponse struct {
 type VerifyEmailResponse struct {
 	User sqlcpkg.User `json:"user"`
 }
+
+
+type LoginResponse struct {
+	Token string `json:"token"`
+	RefreshToken string `json:"refreshtoken"`
+}
