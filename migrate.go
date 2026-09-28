@@ -9,7 +9,7 @@ import (
 )
 
 
-//go:embed sqlc/schema.sql
+//go:embed sqlc/schemas
 var ddl string
 
 func migrate(){
