@@ -7,13 +7,3 @@ CREATE TABLE IF NOT EXISTS users (
     isactive      BOOLEAN      DEFAULT FALSE,
     role          VARCHAR(20)  NOT NULL
 );
-
-
-
-
-CREATE TABLE refreshtk (
-    id     SERIAL       PRIMARY KEY,
-    userid INTEGER      NOT NULL,
-    token  VARCHAR(50)  NOT NULL UNIQUE,
-    FOREIGN KEY (userid) REFERENCES users(id) ON DELETE CASCADE
-);

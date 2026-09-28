@@ -1,0 +1,17 @@
+-- name: Login :one
+SELECT * FROM users WHERE username = $1 AND password_hash = $2;
+
+-- name: CreateRefreshToken :one
+INSERT INTO refreshtk (userid, token) VALUES ($1, $2)
+RETURNING *;
+
+-- name: CleanRefreshToken :exec
+DELETE FROM refreshtk
+WHERE userid = (SELECT id FROM users WHERE username = $1);
+
+-- name: ValidRefreshToken :one
+SELECT u.username, u.role
+FROM users u
+JOIN refreshtk r ON r.userid = u.id
+WHERE r.token = $1 AND u.isactive = TRUE
+LIMIT 1;
