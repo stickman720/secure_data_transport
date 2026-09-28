@@ -240,14 +240,27 @@ func (ah * AuthHandler) Login (c *gin.Context ){
 	refresh_token := "refresh-tk->"+uuid.New().String()
 
 	err = ah.quesries.CleanRefreshToken(c , user.Username)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError , api_schema.ErrorResponse{
+			Code: "INTERNAL_SERVER_ERROR",
+			Error: "unable to cleane refresh token",
+		})
+		return
+	}
 	
 	crt , ccr := context.WithTimeout(c , time.Second)
 	defer ccr()
-	ah.quesries.CreateRefreshToken(crt,sqlcpkg.CreateRefreshTokenParams{
+	_ , err =ah.quesries.CreateRefreshToken(crt,sqlcpkg.CreateRefreshTokenParams{
 		Token: refresh_token,
 		Userid: user.ID,
 	})
 
+	if err != nil {
+		c.JSON(http.StatusInternalServerError , api_schema.ErrorResponse{
+			Code: "INTERNAL_SERVER_ERROR",
+			Error: "unable to create refresh token",
+		})
+	}
 	
 
 	c.JSON(http.StatusOK , api_schema.LoginResponse{
@@ -256,8 +269,3 @@ func (ah * AuthHandler) Login (c *gin.Context ){
 	})
 	
 } 
-
-
-
-
-
