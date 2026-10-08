@@ -9,9 +9,10 @@ import (
 )
 
 type Refreshtk struct {
-	ID     int32
-	Userid int32
-	Token  string
+	ID        int32
+	Userid    int32
+	Token     string
+	Createdat pgtype.Timestamp
 }
 
 type User struct {

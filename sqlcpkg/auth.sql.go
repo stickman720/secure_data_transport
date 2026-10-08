@@ -21,7 +21,7 @@ func (q *Queries) CleanRefreshToken(ctx context.Context, username string) error 
 
 const createRefreshToken = `-- name: CreateRefreshToken :one
 INSERT INTO refreshtk (userid, token) VALUES ($1, $2)
-RETURNING id, userid, token
+RETURNING id, userid, token, createdat
 `
 
 type CreateRefreshTokenParams struct {
@@ -32,7 +32,12 @@ type CreateRefreshTokenParams struct {
 func (q *Queries) CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) (Refreshtk, error) {
 	row := q.db.QueryRow(ctx, createRefreshToken, arg.Userid, arg.Token)
 	var i Refreshtk
-	err := row.Scan(&i.ID, &i.Userid, &i.Token)
+	err := row.Scan(
+		&i.ID,
+		&i.Userid,
+		&i.Token,
+		&i.Createdat,
+	)
 	return i, err
 }
 
