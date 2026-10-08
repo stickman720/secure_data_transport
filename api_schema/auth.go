@@ -29,6 +29,18 @@ type LoginRequest struct {
 }
 
 
+
+type ForgetPassRequest struct {
+	Email string `json:"email"`
+}
+
+
+
+type ChangePasswordRequest struct {
+	Token       string `json:"token"        validate:"required"`
+	NewPassword string `json:"new_password" validate:"required,min=8"`
+}
+
 //====================================================================
 //responses
 //====================================================================
@@ -45,11 +57,22 @@ type RegisterResponse struct {
 
 
 type VerifyEmailResponse struct {
-	User sqlcpkg.User `json:"user"`
+	User  sqlcpkg.User `json:"user"`
 }
 
 
 type LoginResponse struct {
 	Token string `json:"token"`
 	RefreshToken string `json:"refreshtoken"`
+}
+
+
+type ForgotPassResponse struct {
+	Message string `json:"message"`
+}
+
+
+
+type ChangePasswordResponse struct {
+	Message string `json:"message"`
 }

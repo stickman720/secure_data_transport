@@ -6,7 +6,9 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"time"
 	"fmt"
+	"crypto/sha256"
 	"errors"
+	"encoding/hex"
 )
 
 
@@ -67,4 +69,11 @@ func (s *Security)ParseToken( tokenStr string) (*Claims, error) {
 		return nil, errors.New("invalid token")
 	}
 	return claims, nil
+}
+
+
+func (s *Security)HashPassword(password string)string{
+	h := sha256.Sum256([]byte(password))
+	passwordhash := hex.EncodeToString(h[:])
+	return passwordhash
 }

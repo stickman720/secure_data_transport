@@ -12,7 +12,7 @@ import (
 	sqlcpkg "secure_data_transport/sqlcpkg"
 	"secure_data_transport/widget"
 	"time"
-
+	"log"
 	"secure_data_transport/core"
 
 	"github.com/gin-gonic/gin"
@@ -60,7 +60,6 @@ func (ah *AuthHandler)registerhandler(c *gin.Context) {
 	})
 
 	if err != nil{
-		fmt.Println(err)
 		c.JSON(http.StatusInternalServerError , gin.H{
 			"error" : "unable to complete request, please try again later",
 		})
@@ -77,8 +76,8 @@ func (ah *AuthHandler)registerhandler(c *gin.Context) {
 
 
 
-	h := sha256.Sum256([]byte(input.Password))
-	passwordhash := hex.EncodeToString(h[:])
+	
+	passwordhash := ah.security.HashPassword(input.Password)
 
 	userid , err := ah.quesries.CreateUser(c , sqlcpkg.CreateUserParams{
 		Username: input.Username,
@@ -260,6 +259,7 @@ func (ah * AuthHandler) Login (c *gin.Context ){
 			Code: "INTERNAL_SERVER_ERROR",
 			Error: "unable to create refresh token",
 		})
+		return
 	}
 	
 
@@ -269,3 +269,97 @@ func (ah * AuthHandler) Login (c *gin.Context ){
 	})
 	
 } 
+
+
+
+func (ah *AuthHandler)ForgotPass(c *gin.Context){
+	input := &api_schema.ForgetPassRequest{}
+	c.ShouldBindJSON(input)
+
+	user , err := ah.quesries.GetUserByEmail(c , input.Email)
+	if err != nil {
+		if err.Error() == "no rows in result set"{
+		c.JSON(http.StatusUnauthorized , api_schema.ErrorResponse{
+			Code: "UNAUTHORIZED",
+			Error: "emali is not exists",
+		})
+		return
+		}
+		c.JSON(http.StatusInternalServerError , api_schema.ErrorResponse{
+			Code: "INTERNAL_SERVER_ERROR",
+			Error: "unable to connect to database",
+		})
+		return
+	}
+	
+
+	pass_change_tk := "emailchange->"+uuid.New().String()
+
+	err  = ah.cach.Set(c , pass_change_tk , cache_schema.PassChangeCache{UserID: user.ID} , time.Minute * 15)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError , api_schema.ErrorResponse{
+			Code: "INTERNAL_SERVER_ERROR",
+			Error: "unable to caching",
+		})
+		return
+	}
+	err = ah.mailer.SendMail([]string{input.Email} , "change pass token :" , pass_change_tk)
+	if err != nil {
+		_ =ah.cach.DropKey(c, pass_change_tk)
+
+		c.JSON(http.StatusInternalServerError , api_schema.ErrorResponse{
+			Code: "INTERNAL_SERVER_ERROR",
+			Error: "unable to send email",
+		})
+		return
+	}
+	
+	c.JSON(http.StatusOK , api_schema.ForgotPassResponse{
+		Message: "change pass token sent for your email",
+	})
+}
+
+
+
+func (h *AuthHandler) ChangePassword(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	// ---- 1. Bind & validate ----
+	var req api_schema.ChangePasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+
+
+	// ---- 3. Look up token in cache ----
+	var payload cache_schema.PassChangeCache
+	if err := h.cach.Get(ctx, req.Token, &payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid or expired token"})
+		return
+	}
+
+	// ---- 4. Hash new password ----
+	hashed := h.security.HashPassword(req.NewPassword)
+	
+
+	// ---- 5. Update DB ----
+	if err := h.quesries.UpdateUserPassword(ctx, sqlcpkg.UpdateUserPasswordParams{
+		PasswordHash: hashed,
+		ID:           payload.UserID,
+	}); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update password"})
+		return
+	}
+
+	// ---- 6. Invalidate token (single-use) ----
+	if err := h.cach.DropKey(ctx, req.Token); err != nil {
+		log.Printf("failed to drop pass change token: %v", err)
+	}
+
+	// ---- 7. Respond ----
+	c.JSON(http.StatusOK, api_schema.ChangePasswordResponse{
+		Message: "password updated successfully",
+	})
+}

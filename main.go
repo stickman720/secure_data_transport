@@ -70,14 +70,8 @@ func startapp(){
 
 func main() {
 
-	args := os.Args
 
-	switch args[1]{
-	case "startapp":
-		startapp()
-	case "migrate":
-		migrate()
-	}
+	startapp()
 	
 
 }

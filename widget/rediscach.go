@@ -75,3 +75,8 @@ func (rc RedisCach) Get (ctx context.Context , key string , out any) (error) {
 
 	return nil
 }
+
+
+func (r RedisCach) DropKey(ctx context.Context, key string) error {
+	return r.Rdb.Del(ctx, key).Err()
+}
