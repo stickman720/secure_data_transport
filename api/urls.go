@@ -13,9 +13,10 @@ import (
 func InitAuthRoutes(r *gin.RouterGroup , quesries *sqlcpkg.Queries, cach *widget.Cach , mailer widget.Mailer , security core.Security) {
 	ah := NewAuthHandler(quesries, *cach, mailer , security)
 
-	r.POST("/register/",ah.registerhandler)
-	r.POST("/verifyemail/",ah.VerifyEmail)
-	r.POST("/login" , ah.Login)
-	r.POST("/forgot-pass" , ah.ForgotPass)
-	r.POST("/change-password" , ah.ChangePassword)
+	r.POST("/register/"        , ah.registerhandler)
+	r.POST("/verifyemail/"     , ah.VerifyEmail)
+	r.POST("/login"            , ah.Login)
+	r.POST("/forgot-pass"      , ah.ForgotPass)
+	r.POST("/change-password"  , ah.ChangePassword)
+	r.POST("/refresh-login"    , ah.RefreshLogin)
 }

@@ -14,7 +14,7 @@ import (
 	"time"
 	"log"
 	"secure_data_transport/core"
-
+	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -361,5 +361,59 @@ func (h *AuthHandler) ChangePassword(c *gin.Context) {
 	// ---- 7. Respond ----
 	c.JSON(http.StatusOK, api_schema.ChangePasswordResponse{
 		Message: "password updated successfully",
+	})
+}
+
+
+
+func (h *AuthHandler) RefreshLogin(c *gin.Context) {
+	// 1. Parse & validate body
+	var req api_schema.RefreshLoginRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, api_schema.ErrorResponse{
+			Code:  "BAD_REQUEST",
+			Error: "bad request",
+		})
+		return
+	}
+
+	if req.Token == "" {
+		c.JSON(http.StatusBadRequest, api_schema.ErrorResponse{
+			Code:  "BAD_REQUEST",
+			Error: "bad request",
+		})
+		return
+	}
+
+	// 2. Look up the refresh token and make sure the user is active
+	user, err := h.quesries.ValidRefreshToken(c.Request.Context(), req.Token)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			c.JSON(http.StatusUnauthorized, api_schema.ErrorResponse{
+				Code:  "UNAUTHORIZED",
+				Error: "invalid token",
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, api_schema.ErrorResponse{
+			Code:  "INTERNAL_SERVER_ERROR",
+			Error: "internal server error",
+		})
+		return
+	}
+
+	// 3. Issue a new JWT
+	jwtToken, err := h.security.CreateJWT(user.Username, user.Role , time.Minute*15)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, api_schema.ErrorResponse{
+			Code:  "INTERNAL_SERVER_ERROR",
+			Error: "internal server error",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, api_schema.RefrshLoginResponse{
+		JWT_Token: jwtToken,
 	})
 }

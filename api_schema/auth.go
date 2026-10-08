@@ -41,6 +41,11 @@ type ChangePasswordRequest struct {
 	NewPassword string `json:"new_password" validate:"required,min=8"`
 }
 
+
+
+type RefreshLoginRequest struct {
+	Token string `json:"refresh-token"`
+}
 //====================================================================
 //responses
 //====================================================================
@@ -75,4 +80,10 @@ type ForgotPassResponse struct {
 
 type ChangePasswordResponse struct {
 	Message string `json:"message"`
+}
+
+
+
+type RefrshLoginResponse struct {
+	JWT_Token string `json:"jwt-token"`
 }
