@@ -295,7 +295,7 @@ func (ah *AuthHandler)ForgotPass(c *gin.Context){
 	}
 	
 
-	pass_change_tk := "emailchange->"+uuid.New().String()
+	pass_change_tk := "change-pass|"+uuid.New().String()
 
 	err  = ah.cach.Set(c , pass_change_tk , cache_schema.PassChangeCache{UserID: user.ID} , time.Minute * 15)
 	if err != nil {
