@@ -7,11 +7,12 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"secure_data_transport/widget"
+	"secure_data_transport/config"
 )
 
 
-func InitAuthRoutes(r *gin.RouterGroup , quesries *sqlcpkg.Queries, cach *widget.Cach , mailer widget.Mailer , security core.Security) {
-	ah := NewAuthHandler(quesries, *cach, mailer , security)
+func InitAuthRoutes(r *gin.RouterGroup , quesries *sqlcpkg.Queries, cach *widget.Cach , mailer widget.Mailer , security core.Security , conf *config.Config) {
+	ah := NewAuthHandler(quesries, *cach, mailer , security , conf)
 
 	r.POST("/register/"        , ah.registerhandler)
 	r.POST("/verifyemail/"     , ah.VerifyEmail)

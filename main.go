@@ -2,15 +2,14 @@ package main
 
 import (
 	"context"
-	"os"
 	"secure_data_transport/api"
 	"secure_data_transport/core"
 	sqlcpkg "secure_data_transport/sqlcpkg"
 	"secure_data_transport/widget"
     "github.com/jackc/pgx/v5"
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 	_ "modernc.org/sqlite"
+	"secure_data_transport/config"
 )
 
 
@@ -23,21 +22,24 @@ func startapp(){
 	ctx := context.Background()
 
 
-	err := godotenv.Load()
-	if err != nil {
+	conf , err := config.Init()
+	if err != nil{
 		panic(err)
 	}
 	
 	var mailer widget.Mailer = widget.SMTPMailer{
-		From:     os.Getenv("EMAIL"),
-		Password: os.Getenv("EMAIL_PASSWORD"),
-		Host:     os.Getenv("HOST"),
-		Port:     os.Getenv("PORT"),
+		From:     conf.Email,
+		Password: conf.EmailPassword,
+		Host:     conf.SMTPHost,
+		Port:     conf.SMTPPort,
 	}
 	//==============================================================
-	var cach widget.Cach = widget.NewRedisCach(os.Getenv("REDIS_ADDR"), os.Getenv("REDIS_PASSWORD"))
+	var cach widget.Cach = widget.NewRedisCach(
+		conf.RedisAddr,
+		conf.RedisPassword,
+	)
 	//==============================================================
-	conn, err := pgx.Connect(ctx, os.Getenv("DB_URL"))
+	conn, err := pgx.Connect(ctx, conf.DataBaseURL)
 	if err != nil {
 		panic(err)
 	}
@@ -46,14 +48,14 @@ func startapp(){
 	queries := sqlcpkg.New(conn)
 	//==============================================================
 	security := core.Security{
-		JWTSecret: os.Getenv("JWT_SECRET"),
-		HashSecret: os.Getenv("HASH_SECRET"),
+		JWTSecret: conf.JWTSecret,
+		HashSecret: conf.HashSecret,
 	}
 
 
 
 	ag := r.Group("/api/auth")
-	api.InitAuthRoutes(ag , queries , &cach , mailer , security)
+	api.InitAuthRoutes(ag , queries , &cach , mailer , security , conf)
 
 	
 
