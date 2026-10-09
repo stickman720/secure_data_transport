@@ -13,5 +13,5 @@ WHERE userid = (SELECT id FROM users WHERE username = $1);
 SELECT u.username, u.role
 FROM users u
 JOIN refreshtk r ON r.userid = u.id
-WHERE r.token = $1 AND u.isactive = TRUE
+WHERE r.token = $1 AND u.isactive = TRUE AND r.createdat > NOW() - make_interval(hours => $2::int)
 LIMIT 1;

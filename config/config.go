@@ -36,6 +36,7 @@ type Config struct{
 	//security config
 	JWTSecret string
 	HashSecret string
+	RefreshTkExpireTime int
 
 }
 
@@ -47,7 +48,10 @@ func Init() (*Config, error){
 		e := ConfigError{msg:"config: failed to load .env: "+err.Error()}
 		return nil , e
 	}
-
+	RefreshTkExpireTime , err := strconv.Atoi(getEnv("REFRESHTK_EXPIRE_TIME", "3"))
+	if err != nil{
+		return nil , ConfigError{msg: "invalid refresh token expire time check .env file"}
+	}
 	c := &Config{
 		// main
 		Host: getEnv("HOST", "0.0.0.0"),
@@ -69,13 +73,14 @@ func Init() (*Config, error){
 		// security
 		JWTSecret:  getEnv("JWT_SECRET", ""),
 		HashSecret: getEnv("HASH_SECRET", ""),
+		RefreshTkExpireTime: RefreshTkExpireTime,
 	}
 
-	err := c.validate()
+	err = c.validate()
 	if err != nil{
 		return nil , err
 	}
-	
+
 	return c , nil
 }
 

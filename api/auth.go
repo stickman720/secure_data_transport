@@ -17,6 +17,7 @@ import (
 	"secure_data_transport/config"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"errors"
 )
 
 
@@ -387,7 +388,10 @@ func (h *AuthHandler) RefreshLogin(c *gin.Context) {
 	}
 
 	// 2. Look up the refresh token and make sure the user is active
-	user, err := h.quesries.ValidRefreshToken(c.Request.Context(), req.Token)
+	user, err := h.quesries.ValidRefreshToken(c.Request.Context(), sqlcpkg.ValidRefreshTokenParams{
+		Token: req.Token,
+		Column2: int32(h.conf.RefreshTkExpireTime),
+	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			c.JSON(http.StatusUnauthorized, api_schema.ErrorResponse{

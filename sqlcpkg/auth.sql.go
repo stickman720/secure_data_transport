@@ -69,17 +69,22 @@ const validRefreshToken = `-- name: ValidRefreshToken :one
 SELECT u.username, u.role
 FROM users u
 JOIN refreshtk r ON r.userid = u.id
-WHERE r.token = $1 AND u.isactive = TRUE
+WHERE r.token = $1 AND u.isactive = TRUE AND r.createdat > NOW() - make_interval(hours => $2::int)
 LIMIT 1
 `
+
+type ValidRefreshTokenParams struct {
+	Token   string
+	Column2 int32
+}
 
 type ValidRefreshTokenRow struct {
 	Username string
 	Role     string
 }
 
-func (q *Queries) ValidRefreshToken(ctx context.Context, token string) (ValidRefreshTokenRow, error) {
-	row := q.db.QueryRow(ctx, validRefreshToken, token)
+func (q *Queries) ValidRefreshToken(ctx context.Context, arg ValidRefreshTokenParams) (ValidRefreshTokenRow, error) {
+	row := q.db.QueryRow(ctx, validRefreshToken, arg.Token, arg.Column2)
 	var i ValidRefreshTokenRow
 	err := row.Scan(&i.Username, &i.Role)
 	return i, err
