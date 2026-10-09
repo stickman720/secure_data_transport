@@ -14,7 +14,7 @@ import (
 	"time"
 	"log"
 	"secure_data_transport/core"
-
+	"secure_data_transport/config"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -31,10 +31,11 @@ type AuthHandler struct{
 	cach widget.Cach
 	mailer widget.Mailer
 	security core.Security
+	conf *config.Config
 }
 
-func NewAuthHandler(queries *sqlcpkg.Queries, cach widget.Cach , mailer widget.Mailer , security core.Security) *AuthHandler{
-	return &AuthHandler{quesries: queries, cach: cach , mailer: mailer,security: security}
+func NewAuthHandler(queries *sqlcpkg.Queries, cach widget.Cach , mailer widget.Mailer , security core.Security ,conf *config.Config) *AuthHandler{
+	return &AuthHandler{quesries: queries, cach: cach , mailer: mailer,security: security , conf: conf}
 }
 
 
