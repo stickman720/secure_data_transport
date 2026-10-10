@@ -448,7 +448,7 @@ func (h *AuthHandler) GetChangePasswordTk(c *gin.Context) {
 
 	pass_change_tk := "change-pass|"+uuid.New().String()
 	
-	err = h.cach.Set(c , pass_change_tk , cache_schema.PassChangeCache{UserID: int32(pay.UserID)},time.Minute*15)
+	err = h.cach.Set(c , pass_change_tk , cache_schema.PassChangeCache{UserID: pay.UserID},time.Minute*15)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError , api_schema.ErrorResponse{
 			Code: "INTERNAL_SERVER_ERROR",
