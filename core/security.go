@@ -23,7 +23,7 @@ type Security struct {
 
 type Claims struct {
 	jwt.RegisteredClaims
-	UserID int64 `json:"userid"`
+	UserID int32 `json:"userid"`
 	Role string `json:"role"`
 }
 
@@ -59,7 +59,6 @@ func (s *Security)ParseToken( tokenStr string) (*Claims, error) {
 		return secret, nil
 	},
 		jwt.WithValidMethods([]string{"HS256"}),
-		jwt.WithIssuer("myapp"),
 		jwt.WithExpirationRequired(),
 	)
 	if err != nil {
