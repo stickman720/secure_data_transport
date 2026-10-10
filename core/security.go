@@ -23,21 +23,21 @@ type Security struct {
 
 type Claims struct {
 	jwt.RegisteredClaims
-	UserID int64 `json:"username"`
+	UserID int64 `json:"userid"`
 	Role string `json:"role"`
 }
 
 
 
 
-func (s *Security) CreateJWT(username string, role string, ttl time.Duration) (string, error) {
+func (s *Security) CreateJWT(userid int32, role string, ttl time.Duration) (string, error) {
 	now := time.Now()
 
 	c := jwt.MapClaims{
-		"username": username,
-		"role":     role,
-		"iat":      now.Unix(),
-		"exp":      now.Add(ttl).Unix(),
+		"userid": userid,
+		"role"  : role,
+		"iat"   : now.Unix(),
+		"exp"   : now.Add(ttl).Unix(),
 	}
 
 	tok := jwt.NewWithClaims(jwt.SigningMethodHS256, c)

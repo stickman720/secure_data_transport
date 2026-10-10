@@ -229,7 +229,7 @@ func (ah * AuthHandler) Login (c *gin.Context ){
 		return
 	}
 
-	token , err   := ah.security.CreateJWT(user.Username , user.Role , time.Minute * 15)
+	token , err   := ah.security.CreateJWT(user.ID , user.Role , time.Minute * 15)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError , api_schema.ErrorResponse{
 			Code: "INTERNAL_SERVER_ERROR",
@@ -409,7 +409,7 @@ func (h *AuthHandler) RefreshLogin(c *gin.Context) {
 	}
 
 	// 3. Issue a new JWT
-	jwtToken, err := h.security.CreateJWT(user.Username, user.Role , time.Minute*15)
+	jwtToken, err := h.security.CreateJWT(user.ID, user.Role , time.Minute*15)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, api_schema.ErrorResponse{
 			Code:  "INTERNAL_SERVER_ERROR",
