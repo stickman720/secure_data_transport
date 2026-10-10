@@ -10,7 +10,7 @@ DELETE FROM refreshtk
 WHERE userid = (SELECT id FROM users WHERE username = $1);
 
 -- name: ValidRefreshToken :one
-SELECT u.username, u.role
+SELECT u.id, u.role
 FROM users u
 JOIN refreshtk r ON r.userid = u.id
 WHERE r.token = $1 AND u.isactive = TRUE AND r.createdat > NOW() - make_interval(hours => $2::int)

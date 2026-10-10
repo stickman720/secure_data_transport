@@ -66,7 +66,7 @@ func (q *Queries) Login(ctx context.Context, arg LoginParams) (User, error) {
 }
 
 const validRefreshToken = `-- name: ValidRefreshToken :one
-SELECT u.username, u.role
+SELECT u.id, u.role
 FROM users u
 JOIN refreshtk r ON r.userid = u.id
 WHERE r.token = $1 AND u.isactive = TRUE AND r.createdat > NOW() - make_interval(hours => $2::int)
@@ -79,13 +79,13 @@ type ValidRefreshTokenParams struct {
 }
 
 type ValidRefreshTokenRow struct {
-	Username string
-	Role     string
+	ID   int32
+	Role string
 }
 
 func (q *Queries) ValidRefreshToken(ctx context.Context, arg ValidRefreshTokenParams) (ValidRefreshTokenRow, error) {
 	row := q.db.QueryRow(ctx, validRefreshToken, arg.Token, arg.Column2)
 	var i ValidRefreshTokenRow
-	err := row.Scan(&i.Username, &i.Role)
+	err := row.Scan(&i.ID, &i.Role)
 	return i, err
 }
