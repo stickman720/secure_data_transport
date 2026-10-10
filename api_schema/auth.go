@@ -87,3 +87,9 @@ type ChangePasswordResponse struct {
 type RefrshLoginResponse struct {
 	JWT_Token string `json:"jwt-token"`
 }
+
+
+
+type GetChangePasswordTkResponse struct {
+	ChangePasswordTk string `json:"token"`
+}

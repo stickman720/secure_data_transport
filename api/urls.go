@@ -20,4 +20,6 @@ func InitAuthRoutes(r *gin.RouterGroup , quesries *sqlcpkg.Queries, cach *widget
 	r.POST("/forgot-pass"      , ah.ForgotPass)
 	r.POST("/change-password"  , ah.ChangePassword)
 	r.POST("/refresh-login"    , ah.RefreshLogin)
+
+	r.GET("/change-password/:token" , ah.GetChangePasswordTk)
 }

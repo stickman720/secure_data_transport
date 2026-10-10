@@ -422,3 +422,42 @@ func (h *AuthHandler) RefreshLogin(c *gin.Context) {
 		JWT_Token: jwtToken,
 	})
 }
+
+
+
+func (h *AuthHandler) GetChangePasswordTk(c *gin.Context) {
+
+	// ---- 1. Read token from URL path ----
+	token := c.Param("token")
+	if token == "" {
+		c.JSON(http.StatusBadRequest, api_schema.ErrorResponse{
+			Code:  "BAD_REQUEST",
+			Error: "token is required",
+		})
+		return
+	}
+
+	pay , err := h.security.ParseToken(token)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized , api_schema.ErrorResponse{
+			Code: "UNAUTHORIZED",
+			Error: err.Error(),
+		})
+		return
+	}
+
+	pass_change_tk := "change-pass|"+uuid.New().String()
+	
+	err = h.cach.Set(c , pass_change_tk , cache_schema.PassChangeCache{UserID: int32(pay.UserID)},time.Minute*15)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError , api_schema.ErrorResponse{
+			Code: "INTERNAL_SERVER_ERROR",
+			Error: err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, api_schema.GetChangePasswordTkResponse{
+		ChangePasswordTk: pass_change_tk,
+	})
+}
