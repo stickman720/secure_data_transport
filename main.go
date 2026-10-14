@@ -56,7 +56,8 @@ func startapp(){
 
 	ag := r.Group("/api/auth")
 	api.InitAuthRoutes(ag , queries , &cach , mailer , security , conf)
-
+	tg := r.Group("/api/teams")
+	api.InitTeamRoutes(tg , queries , &cach , mailer , security , conf)
 	
 
 
