@@ -21,8 +21,15 @@ type Team struct {
 	UserCount        int32
 	RateLimitPerUser int32
 	StorageSpace     int32
-	Treansfear       int32
+	Transfer         int32
 	Userid           int32
+}
+
+type Teamuser struct {
+	ID       int32
+	TeamID   int32
+	Username string
+	Token    string
 }
 
 type User struct {

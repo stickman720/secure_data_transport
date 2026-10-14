@@ -56,7 +56,7 @@ func (h *TeamHandler) CreateTeam(c *gin.Context) {
 	if req.Team.UserCount <= 0 ||
 		req.Team.RateLimitPerUser <= 0 ||
 		req.Team.StorageSpace <= 0 ||
-		req.Team.Transfear <= 0 {
+		req.Team.Transfer <= 0 {
 		c.JSON(http.StatusBadRequest, api_schema.ErrorResponse{
 			Code:  "BAD_REQUEST",
 			Error: "bad request",
@@ -81,7 +81,7 @@ func (h *TeamHandler) CreateTeam(c *gin.Context) {
 		UserCount:        int32(req.Team.UserCount),
 		RateLimitPerUser: int32(req.Team.RateLimitPerUser),
 		StorageSpace:     int32(req.Team.StorageSpace),
-		Treansfear:       int32(req.Team.Transfear),
+		Transfer:       int32(req.Team.Transfer),
 		Userid:           claims.UserID,
 	})
 	if err != nil {

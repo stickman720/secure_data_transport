@@ -8,5 +8,5 @@ type TeamInput struct {
 	UserCount int `json:"user-count"`
 	RateLimitPerUser int `json:"rate-limit-per-user"`
 	StorageSpace int `json:"storage-space"`
-	Transfear int `json:"transfear"`
+	Transfer int `json:"transfear"`
 }
