@@ -22,6 +22,12 @@ type GetTeamsRequest struct {
 	Username string `json:"username"`
 }
 
+
+
+type DeleteTeamRequest struct {
+	Title string `json:"title"`
+}
+
 //========================================================
 //responses
 //========================================================
@@ -35,4 +41,10 @@ type CreateTeamResponse struct {
 
 type GetTeamsResponse struct {
 	Teams []sqlcpkg.Team `json:"teams"`
+}
+
+
+
+type DeleteTeamResponse struct {
+    Team sqlcpkg.Team `json:"team"`
 }

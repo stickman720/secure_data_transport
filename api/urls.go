@@ -30,5 +30,8 @@ func InitTeamRoutes(r *gin.RouterGroup , quesries *sqlcpkg.Queries, cach *widget
 	th := NewTeamHandler(quesries, *cach, mailer , security , conf)
 
 	r.POST("/" , th.CreateTeam)
+
 	r.GET("/:token" , th.GetTeams)
+
+	r.DELETE("/:token" , th.DeleteTeam)
 }

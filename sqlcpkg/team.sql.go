@@ -44,6 +44,32 @@ func (q *Queries) CreateTeam(ctx context.Context, arg CreateTeamParams) (Team, e
 	return i, err
 }
 
+const deleteTeam = `-- name: DeleteTeam :one
+DELETE FROM teams
+WHERE userid = $1 AND title = $2
+RETURNING id, title, user_count, rate_limit_per_user, storage_space, treansfear, userid
+`
+
+type DeleteTeamParams struct {
+	Userid int32
+	Title  string
+}
+
+func (q *Queries) DeleteTeam(ctx context.Context, arg DeleteTeamParams) (Team, error) {
+	row := q.db.QueryRow(ctx, deleteTeam, arg.Userid, arg.Title)
+	var i Team
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.UserCount,
+		&i.RateLimitPerUser,
+		&i.StorageSpace,
+		&i.Treansfear,
+		&i.Userid,
+	)
+	return i, err
+}
+
 const getTeams = `-- name: GetTeams :many
 SELECT id, title, user_count, rate_limit_per_user, storage_space, treansfear, userid FROM teams WHERE userid = $1
 `
@@ -74,4 +100,17 @@ func (q *Queries) GetTeams(ctx context.Context, userid int32) ([]Team, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const teamExistsByTitle = `-- name: TeamExistsByTitle :one
+SELECT EXISTS (
+    SELECT 1 FROM teams WHERE title = $1
+) AS exists
+`
+
+func (q *Queries) TeamExistsByTitle(ctx context.Context, title string) (bool, error) {
+	row := q.db.QueryRow(ctx, teamExistsByTitle, title)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
 }

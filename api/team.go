@@ -12,7 +12,7 @@ import (
 	"secure_data_transport/widget"
 	"strings"
 	"time"
-
+	"github.com/jackc/pgx/v5"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgconn"
 )
@@ -149,3 +149,107 @@ func (h *TeamHandler) GetTeams(c *gin.Context){
 	})
 
 }
+
+
+
+func (h *TeamHandler) DeleteTeam(c *gin.Context) {
+    ctx := c.Request.Context()
+
+    // -------- 1. Extract & validate JWT from path --------
+    jwtToken := c.Param("token")
+    if jwtToken == "" {
+        c.JSON(http.StatusUnauthorized, api_schema.ErrorResponse{
+            Code:  "UNAUTHORIZED",
+            Error: "invalid token",
+        })
+        return
+    }
+
+    claims, err := h.security.ParseToken(jwtToken)
+    if err != nil {
+        c.JSON(http.StatusUnauthorized, api_schema.ErrorResponse{
+            Code:  "UNAUTHORIZED",
+            Error: "invalid token",
+        })
+        return
+    }
+
+	if claims.Role != "owner"{
+		c.JSON(http.StatusForbidden , api_schema.ErrorResponse{
+			Code:"FORBIDEN",
+			Error: "you haven`t access",
+		})
+		return
+	}
+
+
+    // -------- 2. Bind and validate body --------
+    var req api_schema.DeleteTeamRequest
+    if err := c.ShouldBindJSON(&req); err != nil {
+        c.JSON(http.StatusBadRequest, api_schema.ErrorResponse{
+            Code:  "BAD_REQUEST",
+            Error: "invalid request body",
+        })
+        return
+    }
+
+    req.Title = strings.TrimSpace(req.Title)
+    if req.Title == "" {
+        c.JSON(http.StatusBadRequest, api_schema.ErrorResponse{
+            Code:  "BAD_REQUEST",
+            Error: "title is required",
+        })
+        return
+    }
+
+    // -------- 3. Try to delete as owner --------
+    team, err := h.quesries.DeleteTeam(ctx, sqlcpkg.DeleteTeamParams{
+		Userid: claims.UserID,
+		Title: req.Title,
+	})
+
+    if err == nil {
+        // Success — return the deleted team
+        c.JSON(http.StatusOK, api_schema.DeleteTeamResponse{Team: team})
+        return
+    }
+
+    // Only pgx.ErrNoRows means "no rows matched" — anything else is a real failure.
+    if !errors.Is(err, pgx.ErrNoRows) {
+        var pgErr *pgconn.PgError
+        if errors.As(err, &pgErr) {
+            // optionally log pgErr
+        }
+        c.JSON(http.StatusInternalServerError, api_schema.ErrorResponse{
+            Code:  "INTERNAL_SERVER_ERROR",
+            Error: "internal server error",
+        })
+        return
+    }
+
+    // -------- 4. Nothing deleted — figure out 404 vs 403 --------
+    exists, exErr := h.quesries.TeamExistsByTitle(ctx, req.Title)
+    if exErr != nil {
+        c.JSON(http.StatusInternalServerError, api_schema.ErrorResponse{
+            Code:  "INTERNAL_SERVER_ERROR",
+            Error: "internal server error",
+        })
+        return
+    }
+
+    if exists {
+        // Team exists but belongs to someone else
+        c.JSON(http.StatusForbidden, api_schema.ErrorResponse{
+            Code:  "FORBIDEN",
+            Error: "you haven`t access",
+        })
+        return
+    }
+
+    // No such team at all
+    c.JSON(http.StatusNotFound, api_schema.ErrorResponse{
+        Code:  "TEAM_NOT_FOUND",
+        Error: "there is not any team with this title for you",
+    })
+}
+
