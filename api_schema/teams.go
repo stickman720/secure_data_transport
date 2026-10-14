@@ -14,6 +14,14 @@ type CreateTeamRequest struct {
 	JWTToken string `json:"token"`
 	Team TeamInput `json:"team"`
 }
+
+
+
+type GetTeamsRequest struct {
+	Title string `json:"title"`
+	Username string `json:"username"`
+}
+
 //========================================================
 //responses
 //========================================================
@@ -21,4 +29,10 @@ type CreateTeamRequest struct {
 type CreateTeamResponse struct {
 	Message string `json:"message"`
 	Team sqlcpkg.Team `json:"team"`
+}
+
+
+
+type GetTeamsResponse struct {
+	Teams []sqlcpkg.Team `json:"teams"`
 }

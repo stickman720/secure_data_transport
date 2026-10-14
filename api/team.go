@@ -1,14 +1,18 @@
 package api
 
 import (
+	"context"
+	"errors"
+	
 	"net/http"
 	"secure_data_transport/api_schema"
 	"secure_data_transport/config"
 	"secure_data_transport/core"
 	sqlcpkg "secure_data_transport/sqlcpkg"
 	"secure_data_transport/widget"
-	"errors"
 	"strings"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgconn"
 )
@@ -26,6 +30,8 @@ type TeamHandler struct{
 func NewTeamHandler(queries *sqlcpkg.Queries, cach widget.Cach , mailer widget.Mailer , security core.Security ,conf *config.Config) *TeamHandler{
 	return &TeamHandler{quesries: queries, cach: cach , mailer: mailer,security: security , conf: conf}
 } 
+
+
 
 func (h *TeamHandler) CreateTeam(c *gin.Context) {
 	// --- 1. Parse body ---
@@ -102,4 +108,44 @@ func (h *TeamHandler) CreateTeam(c *gin.Context) {
 		Message: "team created",
 		Team:    team,
 	})
+}
+
+
+
+func (h *TeamHandler) GetTeams(c *gin.Context){
+	token := c.Param("token")
+
+	claim , err := h.security.ParseToken(token)
+	if err != nil{
+		c.JSON(http.StatusUnauthorized , api_schema.ErrorResponse{
+			Code: "UNAUTHORIZED",
+			Error: "invalid tokan",
+		})
+		return
+	}
+
+	if claim.Role != "owner"{
+		c.JSON(http.StatusForbidden,api_schema.ErrorResponse{
+			Code: "FORBIDEN",
+			Error: "you haven`t access",
+		})
+		return
+	}
+
+	togt , cgt := context.WithTimeout(c , time.Second)
+	defer cgt()
+	teams , err := h.quesries.GetTeams(togt , claim.UserID)
+
+	if err != nil{
+		c.JSON(http.StatusInternalServerError , api_schema.ErrorResponse{
+			Code: "INTERNAL_SERVER_ERROR",
+			Error: "internal server error",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK , api_schema.GetTeamsResponse{
+		Teams: teams,
+	})
+
 }

@@ -44,23 +44,31 @@ func (q *Queries) CreateTeam(ctx context.Context, arg CreateTeamParams) (Team, e
 	return i, err
 }
 
-const getTeamsList = `-- name: GetTeamsList :many
-SELECT title FROM teams WHERE userid = $1
+const getTeams = `-- name: GetTeams :many
+SELECT id, title, user_count, rate_limit_per_user, storage_space, treansfear, userid FROM teams WHERE userid = $1
 `
 
-func (q *Queries) GetTeamsList(ctx context.Context, userid int32) ([]string, error) {
-	rows, err := q.db.Query(ctx, getTeamsList, userid)
+func (q *Queries) GetTeams(ctx context.Context, userid int32) ([]Team, error) {
+	rows, err := q.db.Query(ctx, getTeams, userid)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []string
+	var items []Team
 	for rows.Next() {
-		var title string
-		if err := rows.Scan(&title); err != nil {
+		var i Team
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.UserCount,
+			&i.RateLimitPerUser,
+			&i.StorageSpace,
+			&i.Treansfear,
+			&i.Userid,
+		); err != nil {
 			return nil, err
 		}
-		items = append(items, title)
+		items = append(items, i)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
