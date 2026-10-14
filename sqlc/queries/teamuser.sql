@@ -1,7 +1,7 @@
--- name: CreateTeamUser:one
+-- name: CreateTeamUser :one
 INSERT INTO teamuser (username , team_id , token) VALUES ($1 , (SELECT id FROM teams WHERE title = $2) , $3) RETURNING *;
 
--- name: GetTeamAndUser:one
+-- name: GetTeamAndUser :one
 SELECT 
     t.title,
     t.rate_limit_per_user,
