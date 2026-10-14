@@ -1,0 +1,6 @@
+CREATE TABLE teamuser  (
+    id SERIAL PRIMARY KEY,
+    team_id SERIAL NOT NULL REFERENCES teams(id),
+    username VARCHAR(50) NOT NULL UNIQUE,
+    token VARCHAR(50) NOT NULL UNIQUE
+);
