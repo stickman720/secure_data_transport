@@ -8,7 +8,7 @@ SELECT
     t.storage_space,
     t.transfear,
     tu.username,
-    tu.id,
+    tu.id
 FROM teams t 
 JOIN teamuser ON teamuser.team_id = t.id
 WHERE teamuser.token = $1;
