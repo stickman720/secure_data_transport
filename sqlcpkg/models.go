@@ -15,6 +15,16 @@ type Refreshtk struct {
 	Createdat pgtype.Timestamp
 }
 
+type Team struct {
+	ID               int32
+	Title            string
+	UserCount        int32
+	RateLimitPerUser int32
+	StorageSpace     int32
+	Treansfear       int32
+	Userid           int32
+}
+
 type User struct {
 	ID           int32
 	Username     string
