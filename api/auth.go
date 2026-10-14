@@ -215,7 +215,7 @@ func (ah * AuthHandler) Login (c *gin.Context ){
 	})
 
 	if err != nil {
-		if err == sql.ErrNoRows{
+		if err.Error() == "no rows in result set"{
 			c.JSON(http.StatusUnauthorized , api_schema.ErrorResponse{
 				Code : "UNAUTHORIZED",
 				Error: "username or password is not corect",
@@ -287,6 +287,7 @@ func (ah *AuthHandler)ForgotPass(c *gin.Context){
 		})
 		return
 		}
+		
 		c.JSON(http.StatusInternalServerError , api_schema.ErrorResponse{
 			Code: "INTERNAL_SERVER_ERROR",
 			Error: "unable to connect to database",

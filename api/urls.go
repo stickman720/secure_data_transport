@@ -23,3 +23,11 @@ func InitAuthRoutes(r *gin.RouterGroup , quesries *sqlcpkg.Queries, cach *widget
 
 	r.GET("/change-password/:token" , ah.GetChangePasswordTk)
 }
+
+
+
+func InitTeamRoutes(r *gin.RouterGroup , quesries *sqlcpkg.Queries, cach *widget.Cach , mailer widget.Mailer , security core.Security , conf *config.Config) {
+	th := NewTeamHandler(quesries, *cach, mailer , security , conf)
+
+	r.POST("/" , th.CreateTeam)
+}
