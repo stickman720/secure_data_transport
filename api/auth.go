@@ -154,7 +154,7 @@ func (ah *AuthHandler)VerifyEmail(c *gin.Context){
 		}	
 		c.JSON(http.StatusInternalServerError , api_schema.ErrorResponse{
 			Code:"INTERNAL_SERVER_ERROR",
-			Error:"internal server error 1",
+			Error:"unable to connectiong to cache",
 		})
 		return
 	}
@@ -163,7 +163,7 @@ func (ah *AuthHandler)VerifyEmail(c *gin.Context){
 	if err != nil{
 		c.JSON(http.StatusInternalServerError , api_schema.ErrorResponse{
 			Code:"INTERNAL_SERVER_ERROR",
-			Error:"internal server error 2",
+			Error:"unable to connect to database",
 		})
 		return
 	}
@@ -179,7 +179,7 @@ func (ah *AuthHandler)VerifyEmail(c *gin.Context){
 	if err != nil{
 		c.JSON(http.StatusInternalServerError , api_schema.ErrorResponse{
 			Code:"INTERNAL_SERVER_ERROR",
-			Error:"internal server error 3",
+			Error:"unable to connect to database",
 		})
 		return
 	}
@@ -224,7 +224,7 @@ func (ah * AuthHandler) Login (c *gin.Context ){
 		}
 		c.JSON(http.StatusInternalServerError , api_schema.ErrorResponse{
 			Code : "INTERNAL_SERVER_ERROR",
-			Error: "internal server error",
+			Error: "unable to connect to database",
 		})
 		return
 	}
@@ -233,7 +233,7 @@ func (ah * AuthHandler) Login (c *gin.Context ){
 	if err != nil {
 		c.JSON(http.StatusInternalServerError , api_schema.ErrorResponse{
 			Code: "INTERNAL_SERVER_ERROR",
-			Error: "internal server error",
+			Error: "unable to create token",
 		})
 		return
 	}
@@ -403,7 +403,7 @@ func (h *AuthHandler) RefreshLogin(c *gin.Context) {
 
 		c.JSON(http.StatusInternalServerError, api_schema.ErrorResponse{
 			Code:  "INTERNAL_SERVER_ERROR",
-			Error: "internal server error",
+			Error: "unable to connect to database",
 		})
 		return
 	}
@@ -413,7 +413,7 @@ func (h *AuthHandler) RefreshLogin(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, api_schema.ErrorResponse{
 			Code:  "INTERNAL_SERVER_ERROR",
-			Error: "internal server error",
+			Error: "unable to create token",
 		})
 		return
 	}
