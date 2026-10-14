@@ -10,7 +10,7 @@ import (
 )
 
 const createTeam = `-- name: CreateTeam :one
-INSERT INTO teams (title , user_count ,rate_limit_per_user , storage_space , treansfear , userid) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id, title, user_count, rate_limit_per_user, storage_space, treansfear, userid
+INSERT INTO teams (title , user_count ,rate_limit_per_user , storage_space , transfer , userid) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id, title, user_count, rate_limit_per_user, storage_space, transfer, userid
 `
 
 type CreateTeamParams struct {
@@ -18,7 +18,7 @@ type CreateTeamParams struct {
 	UserCount        int32
 	RateLimitPerUser int32
 	StorageSpace     int32
-	Treansfear       int32
+	Transfer         int32
 	Userid           int32
 }
 
@@ -28,7 +28,7 @@ func (q *Queries) CreateTeam(ctx context.Context, arg CreateTeamParams) (Team, e
 		arg.UserCount,
 		arg.RateLimitPerUser,
 		arg.StorageSpace,
-		arg.Treansfear,
+		arg.Transfer,
 		arg.Userid,
 	)
 	var i Team
@@ -38,7 +38,7 @@ func (q *Queries) CreateTeam(ctx context.Context, arg CreateTeamParams) (Team, e
 		&i.UserCount,
 		&i.RateLimitPerUser,
 		&i.StorageSpace,
-		&i.Treansfear,
+		&i.Transfer,
 		&i.Userid,
 	)
 	return i, err
@@ -47,7 +47,7 @@ func (q *Queries) CreateTeam(ctx context.Context, arg CreateTeamParams) (Team, e
 const deleteTeam = `-- name: DeleteTeam :one
 DELETE FROM teams
 WHERE userid = $1 AND title = $2
-RETURNING id, title, user_count, rate_limit_per_user, storage_space, treansfear, userid
+RETURNING id, title, user_count, rate_limit_per_user, storage_space, transfer, userid
 `
 
 type DeleteTeamParams struct {
@@ -64,14 +64,14 @@ func (q *Queries) DeleteTeam(ctx context.Context, arg DeleteTeamParams) (Team, e
 		&i.UserCount,
 		&i.RateLimitPerUser,
 		&i.StorageSpace,
-		&i.Treansfear,
+		&i.Transfer,
 		&i.Userid,
 	)
 	return i, err
 }
 
 const getTeams = `-- name: GetTeams :many
-SELECT id, title, user_count, rate_limit_per_user, storage_space, treansfear, userid FROM teams WHERE userid = $1
+SELECT id, title, user_count, rate_limit_per_user, storage_space, transfer, userid FROM teams WHERE userid = $1
 `
 
 func (q *Queries) GetTeams(ctx context.Context, userid int32) ([]Team, error) {
@@ -89,7 +89,7 @@ func (q *Queries) GetTeams(ctx context.Context, userid int32) ([]Team, error) {
 			&i.UserCount,
 			&i.RateLimitPerUser,
 			&i.StorageSpace,
-			&i.Treansfear,
+			&i.Transfer,
 			&i.Userid,
 		); err != nil {
 			return nil, err
