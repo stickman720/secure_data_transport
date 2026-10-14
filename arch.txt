@@ -318,6 +318,12 @@ response:
         "code"  :"INTERNAL_SERVER_ERROR",
         "error" : "internal server error"
     }
+...............................
+    status 403
+    {
+        "code" : "FORBIDEN"
+        "error" : "you haven`t access"
+    }
 
 
 
@@ -351,7 +357,75 @@ response :
         "code"  : "INTERNAL_SERVER_ERROR",
         "error" : "internal server error"
     }
+...............................
+    status 403
+    {
+        "code" : "FORBIDEN"
+        "error" : "you haven`t access"
+    }
+
+
+[POST] : /api/teams/user/{jwt-token}
+
+input :
+    {
+        "username":...
+        "team":...
+    }
+response :
+    status 200
+    {
+        "team-user":...
+        "user-token":...
+    }
+..................................
+    status 401
+    {
+        "code":"UNAUTHORIZED"
+        "error":"invalid token"
+    }
+..................................
+    status 500
+    {
+        "code":"INTERNAL_SERVER_ERROR"
+        "error":"internal server error"
+    }
+...............................
+    status 403
+    {
+        "code" : "FORBIDEN"
+        "error" : "you haven`t access"
+    }
 
 
 
 
+
+[DELETE] :‌ /api/teams/user/{jwt-token}
+input :
+    {
+        "username":...
+    }
+response :
+    status 200
+    {
+        "message":"user deleted"
+    }
+..................................
+    status 401
+    {
+        "code":"UNAUTHORIZED"
+        "error":"invalid token"
+    }
+..................................
+    status 500
+    {
+        "code":"INTERNAL_SERVER_ERROR"
+        "error":"internal server error"
+    }
+...............................
+    status 403
+    {
+        "code" : "FORBIDEN"
+        "error" : "you haven`t access"
+    }
