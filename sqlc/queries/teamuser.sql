@@ -14,4 +14,4 @@ JOIN teamuser tu ON teamuser.team_id = t.id
 WHERE teamuser.token = $1;
 
 -- name: DeleteTeamUser :exec
-DELETE FROM teamuser WHERE id = $1;
+DELETE FROM teamuser WHERE username = $1;
