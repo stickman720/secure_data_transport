@@ -12,3 +12,6 @@ SELECT
 FROM teams t 
 JOIN teamuser tu ON teamuser.team_id = t.id
 WHERE teamuser.token = $1;
+
+-- name: DeleteTeamUser :exec
+DELETE FROM teamuser WHERE id = $1;

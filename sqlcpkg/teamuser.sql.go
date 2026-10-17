@@ -31,6 +31,15 @@ func (q *Queries) CreateTeamUser(ctx context.Context, arg CreateTeamUserParams) 
 	return i, err
 }
 
+const deleteTeamUser = `-- name: DeleteTeamUser :exec
+DELETE FROM teamuser WHERE id = $1
+`
+
+func (q *Queries) DeleteTeamUser(ctx context.Context, id int32) error {
+	_, err := q.db.Exec(ctx, deleteTeamUser, id)
+	return err
+}
+
 const getTeamAndUser = `-- name: GetTeamAndUser :one
 SELECT 
     t.title,
