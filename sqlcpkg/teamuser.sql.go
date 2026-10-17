@@ -31,7 +31,7 @@ func (q *Queries) CreateTeamUser(ctx context.Context, arg CreateTeamUserParams) 
 	return i, err
 }
 
-const deleteTeamUser = `-- name: DeleteTeamUser :exec
+const deleteTeamUser = `-- name: DeleteTeamUser :execrows
 DELETE FROM teamuser tu
 USING teams t
 WHERE t.id = tu.team_id AND 
@@ -43,9 +43,12 @@ type DeleteTeamUserParams struct {
 	OwnerID  int32
 }
 
-func (q *Queries) DeleteTeamUser(ctx context.Context, arg DeleteTeamUserParams) error {
-	_, err := q.db.Exec(ctx, deleteTeamUser, arg.Username, arg.OwnerID)
-	return err
+func (q *Queries) DeleteTeamUser(ctx context.Context, arg DeleteTeamUserParams) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteTeamUser, arg.Username, arg.OwnerID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const getTeamAndUser = `-- name: GetTeamAndUser :one
