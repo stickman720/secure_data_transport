@@ -7,6 +7,7 @@ SELECT
     t.rate_limit_per_user,
     t.storage_space,
     t.transfer,
+    t.userid,
     tu.username,
     tu.id
 FROM teams t 

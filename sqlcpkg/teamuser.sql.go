@@ -46,6 +46,7 @@ SELECT
     t.rate_limit_per_user,
     t.storage_space,
     t.transfer,
+    t.userid,
     tu.username,
     tu.id
 FROM teams t 
@@ -58,6 +59,7 @@ type GetTeamAndUserRow struct {
 	RateLimitPerUser int32
 	StorageSpace     int32
 	Transfer         int32
+	Userid           int32
 	Username         string
 	ID               int32
 }
@@ -70,6 +72,7 @@ func (q *Queries) GetTeamAndUser(ctx context.Context, token string) (GetTeamAndU
 		&i.RateLimitPerUser,
 		&i.StorageSpace,
 		&i.Transfer,
+		&i.Userid,
 		&i.Username,
 		&i.ID,
 	)
