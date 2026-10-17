@@ -3,7 +3,8 @@ package api
 import (
 	"context"
 	"errors"
-	
+	"fmt"
+
 	"net/http"
 	"secure_data_transport/api_schema"
 	"secure_data_transport/config"
@@ -12,8 +13,10 @@ import (
 	"secure_data_transport/widget"
 	"strings"
 	"time"
-	"github.com/jackc/pgx/v5"
+
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
@@ -137,6 +140,7 @@ func (h *TeamHandler) GetTeams(c *gin.Context){
 	teams , err := h.quesries.GetTeams(togt , claim.UserID)
 
 	if err != nil{
+		fmt.Println(err.Error())
 		c.JSON(http.StatusInternalServerError , api_schema.ErrorResponse{
 			Code: "INTERNAL_SERVER_ERROR",
 			Error: "internal server error",
@@ -251,5 +255,112 @@ func (h *TeamHandler) DeleteTeam(c *gin.Context) {
         Code:  "TEAM_NOT_FOUND",
         Error: "there is not any team with this title for you",
     })
+}
+
+
+
+func (h *TeamHandler) CreateUser(c *gin.Context) {
+	// ---------------------------------------------------------
+	// 1. read token from path param
+	// ---------------------------------------------------------
+	tokenStr := c.Param("token")
+	if tokenStr == "" {
+		c.JSON(http.StatusUnauthorized, api_schema.ErrorResponse{
+			Code:  "UNAUTHORIZED",
+			Error: "invalid token",
+		})
+		return
+	}
+
+	// ---------------------------------------------------------
+	// 2. parse / validate JWT
+	// ---------------------------------------------------------
+	claims, err := h.security.ParseToken(tokenStr)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, api_schema.ErrorResponse{
+			Code:  "UNAUTHORIZED",
+			Error: "invalid token",
+		})
+		return
+	}
+
+	// ---------------------------------------------------------
+	// 3. authorization: only admin/owner may add team users
+	// ---------------------------------------------------------
+	if claims.Role != "admin" && claims.Role != "owner" {
+		c.JSON(http.StatusForbidden, api_schema.ErrorResponse{
+			Code:  "FORBIDEN",
+			Error: "you haven`t access",
+		})
+		return
+	}
+
+	// ---------------------------------------------------------
+	// 4. bind request body
+	// ---------------------------------------------------------
+	var req api_schema.CreateTeamUserRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, api_schema.ErrorResponse{
+			Code:  "BAD_REQUEST",
+			Error: "invalid request body",
+		})
+		return
+	}
+	if strings.TrimSpace(req.Username) == "" || strings.TrimSpace(req.Title) == "" {
+		c.JSON(http.StatusBadRequest, api_schema.ErrorResponse{
+			Code:  "BAD_REQUEST",
+			Error: "username or title are required",
+		})
+		return
+	}
+
+	// ---------------------------------------------------------
+	// 5. generate a random token for the new teamuser
+	// ---------------------------------------------------------
+	userToken := uuid.New().String()
+
+
+	// ---------------------------------------------------------
+	// 6. insert into teamuser
+	// ---------------------------------------------------------
+	user, err := h.quesries.CreateTeamUser(c.Request.Context(), sqlcpkg.CreateTeamUserParams{
+		Username: req.Username,
+		Title:    req.Title,   // <-- maps to $2 (team title)
+		Token:    userToken,   // <-- maps to $3
+	})
+	if err != nil {
+		// team title lookup returned no rows -> subquery is NULL
+		if errors.Is(err, pgx.ErrNoRows) {
+			c.JSON(http.StatusNotFound, api_schema.ErrorResponse{
+				Code:  "NOT_FOUND",
+				Error: "team not found",
+			})
+			return
+		}
+
+		// unique violation (e.g. username already on this team)
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			c.JSON(http.StatusConflict, api_schema.ErrorResponse{
+				Code:  "CONFLICT",
+				Error: "user already exists in team",
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, api_schema.ErrorResponse{
+			Code:  "INTERNAL_SERVER_ERROR",
+			Error: "internal server error",
+		})
+		return
+	}
+
+	// ---------------------------------------------------------
+	// 7. respond
+	// ---------------------------------------------------------
+	c.JSON(http.StatusOK, api_schema.CreateTeamUserResponse{
+		User:  user,
+		Token: userToken,
+	})
 }
 
