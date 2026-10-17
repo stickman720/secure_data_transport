@@ -14,4 +14,7 @@ JOIN teamuser tu ON teamuser.team_id = t.id
 WHERE teamuser.token = $1;
 
 -- name: DeleteTeamUser :exec
-DELETE FROM teamuser WHERE username = $1;
+DELETE FROM teamuser tu
+USING teams t
+WHERE t.id = tu.team_id AND 
+tu.username = $1 AND t.userid = sqlc.arg(owner_id) ;
