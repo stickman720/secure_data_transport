@@ -364,3 +364,93 @@ func (h *TeamHandler) CreateUser(c *gin.Context) {
 	})
 }
 
+
+
+func (h *TeamHandler) DeleteUser(c *gin.Context) {
+	// ---------------------------------------------------------
+	// 1. read token from path param
+	// ---------------------------------------------------------
+	tokenStr := c.Param("token")
+	if tokenStr == "" {
+		c.JSON(http.StatusUnauthorized, api_schema.ErrorResponse{
+			Code:  "UNAUTHORIZED",
+			Error: "invalid token",
+		})
+		return
+	}
+
+	// ---------------------------------------------------------
+	// 2. parse / validate JWT
+	// ---------------------------------------------------------
+	claims, err := h.security.ParseToken(tokenStr)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, api_schema.ErrorResponse{
+			Code:  "UNAUTHORIZED",
+			Error: "invalid token",
+		})
+		return
+	}
+
+	// ---------------------------------------------------------
+	// 3. authorization: only admin/owner may remove team users
+	// ---------------------------------------------------------
+	if claims.Role != "admin" && claims.Role != "owner" {
+		c.JSON(http.StatusForbidden, api_schema.ErrorResponse{
+			Code:  "FORBIDEN",
+			Error: "you haven`t access",
+		})
+		return
+	}
+
+	// ---------------------------------------------------------
+	// 4. bind request body
+	// ---------------------------------------------------------
+	var req api_schema.DeleteTeamUserRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, api_schema.ErrorResponse{
+			Code:  "BAD_REQUEST",
+			Error: "invalid request body",
+		})
+		return
+	}
+	if strings.TrimSpace(req.Username) == "" {
+		c.JSON(http.StatusBadRequest, api_schema.ErrorResponse{
+			Code:  "BAD_REQUEST",
+			Error: "username is required",
+		})
+		return
+	}
+
+	// ---------------------------------------------------------
+	// 5. delete teamuser (scoped to teams owned by this token)
+	// ---------------------------------------------------------
+	rows, err := h.quesries.DeleteTeamUser(c.Request.Context(), sqlcpkg.DeleteTeamUserParams{
+		Username: req.Username,
+		OwnerID:  claims.UserID,
+	})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, api_schema.ErrorResponse{
+			Code:  "INTERNAL_SERVER_ERROR",
+			Error: "internal server error",
+		})
+		return
+	}
+
+	// ---------------------------------------------------------
+	// 6. no rows affected -> target not in any team owned by caller
+	// ---------------------------------------------------------
+	if rows == 0 {
+		c.JSON(http.StatusForbidden, api_schema.ErrorResponse{
+			Code:  "FORBIDEN",
+			Error: "you haven`t access",
+		})
+		return
+	}
+
+	// ---------------------------------------------------------
+	// 7. respond
+	// ---------------------------------------------------------
+	c.JSON(http.StatusOK, api_schema.DeleteTeamUserResponse{
+		Message: "user deleted",
+	})
+}

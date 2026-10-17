@@ -35,4 +35,5 @@ func InitTeamRoutes(r *gin.RouterGroup , quesries *sqlcpkg.Queries, cach *widget
 	r.GET("/:token" , th.GetTeams)
 
 	r.DELETE("/:token" , th.DeleteTeam)
+	r.DELETE("/user/:token" , th.DeleteUser)
 }

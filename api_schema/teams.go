@@ -35,6 +35,12 @@ type CreateTeamUserRequest struct{
 	Title string `json:"title"`
 }
 
+
+
+type DeleteTeamUserRequest struct {
+	Username string `json:"username"`
+}
+
 //========================================================
 //responses
 //========================================================
@@ -61,4 +67,10 @@ type DeleteTeamResponse struct {
 type CreateTeamUserResponse struct {
 	User sqlcpkg.Teamuser `json:"user"`
 	Token string `json:"user-token"`
+}
+
+
+
+type DeleteTeamUserResponse struct {
+	Message string `json:"message"`
 }
