@@ -365,7 +365,7 @@ response :
     }
 
 
-[POST] : /api/teams/user/{jwt-token}
+[POST] : /api/teams/user/owner/{jwt-token}
 
 input :
     {
@@ -401,7 +401,7 @@ response :
 
 
 
-[DELETE] :‌ /api/teams/user/{jwt-token}
+[DELETE] :‌ /api/teams/user/owner/{jwt-token}
 input :
     {
         "username":...
@@ -433,7 +433,7 @@ response :
 
 
 
-[GET] :‌ /api/teams/user/{jwt-token}
+[GET] :‌ /api/teams/user/owner/{jwt-token}
 input :
     null
 
@@ -465,7 +465,7 @@ response :
 
 
 
-[GET] /api/teams/user/{jwt-token}/{username}
+[GET] /api/teams/user/owner/{jwt-token}/{username}
 input :
     null
 
