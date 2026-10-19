@@ -429,3 +429,61 @@ response :
         "code" : "FORBIDEN"
         "error" : "you haven`t access"
     }
+
+
+
+
+[GET] :‌ /api/teams/user/{jwt-token}
+input :
+    null
+
+response :
+    status 200
+    {
+        "users" : [user]
+    }
+..............................
+    status 500
+    {
+        "code":"INTERNAL_SERVER_ERROR",
+        "error":"internal server error"
+    }
+..............................
+    status 401
+    {
+        "code":"UNAUTHORIZED",
+        "error":"invalid token"
+    }
+...............................
+    status 400
+    {
+        "code":"BAD_REQUEST"
+        "error":"bad request"
+    }
+...............................
+
+
+
+
+[GET] /api/teams/user/{jwt-token}/{username}
+input :
+    null
+
+response :
+    status 200
+    {
+        "user":user
+    }
+...............................
+    status 400
+    {
+        "code":"UNAUTHORIZED",
+        "error":"invalid token"
+    }
+...............................
+    status 403
+    {
+        "code":"FORBIDEN",
+        "error":"you haven`t access"
+    }
+...............................
