@@ -30,10 +30,10 @@ func InitTeamRoutes(r *gin.RouterGroup , quesries *sqlcpkg.Queries, cach *widget
 	th := NewTeamHandler(quesries, *cach, mailer , security , conf)
 
 	r.POST("/" , th.CreateTeam)
-	r.POST("/user/:token" , th.CreateUser)
+	r.POST("/user/owner/:token" , th.CreateUser)
 
 	r.GET("/:token" , th.GetTeams)
 
 	r.DELETE("/:token" , th.DeleteTeam)
-	r.DELETE("/user/:token" , th.DeleteUser)
+	r.DELETE("/user/owner/:token" , th.DeleteUser)
 }
