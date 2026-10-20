@@ -2,7 +2,7 @@
 SELECT * FROM users WHERE username = $1 AND password_hash = $2;
 
 -- name: CreateRefreshToken :one
-INSERT INTO refreshtk (userid, token) VALUES ($1, $2)
+INSERT INTO refreshtk (userid,teamuser_id, token) VALUES (sqlc.arg("useris"),sqlc.arg("teamuser_id"),sqlc.arg("token"))
 RETURNING *;
 
 -- name: CleanRefreshToken :exec
