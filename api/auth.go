@@ -5,19 +5,21 @@ import (
 	"crypto/sha256"
 	"database/sql"
 	"encoding/hex"
+	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"secure_data_transport/api_schema"
 	"secure_data_transport/cache_schema"
+	"secure_data_transport/config"
+	"secure_data_transport/core"
 	sqlcpkg "secure_data_transport/sqlcpkg"
 	"secure_data_transport/widget"
 	"time"
-	"log"
-	"secure_data_transport/core"
-	"secure_data_transport/config"
+
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"errors"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 
@@ -253,7 +255,8 @@ func (ah * AuthHandler) Login (c *gin.Context ){
 	defer ccr()
 	_ , err =ah.quesries.CreateRefreshToken(crt,sqlcpkg.CreateRefreshTokenParams{
 		Token: refresh_token,
-		Userid: user.ID,
+		Userid: pgtype.Int4{Int32: user.ID , Valid: true},
+		TeamuserID: pgtype.Int4{Valid: false},
 	})
 
 	if err != nil {

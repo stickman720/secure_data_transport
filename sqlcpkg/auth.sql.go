@@ -7,6 +7,8 @@ package db
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const cleanRefreshToken = `-- name: CleanRefreshToken :exec
@@ -20,23 +22,25 @@ func (q *Queries) CleanRefreshToken(ctx context.Context, username string) error 
 }
 
 const createRefreshToken = `-- name: CreateRefreshToken :one
-INSERT INTO refreshtk (userid, token) VALUES ($1, $2)
-RETURNING id, userid, token, createdat
+INSERT INTO refreshtk (userid,teamuser_id, token) VALUES ($1,$2,$3)
+RETURNING id, userid, token, createdat, teamuser_id
 `
 
 type CreateRefreshTokenParams struct {
-	Userid int32
-	Token  string
+	Userid     pgtype.Int4
+	TeamuserID pgtype.Int4
+	Token      string
 }
 
 func (q *Queries) CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) (Refreshtk, error) {
-	row := q.db.QueryRow(ctx, createRefreshToken, arg.Userid, arg.Token)
+	row := q.db.QueryRow(ctx, createRefreshToken, arg.Userid, arg.TeamuserID, arg.Token)
 	var i Refreshtk
 	err := row.Scan(
 		&i.ID,
 		&i.Userid,
 		&i.Token,
 		&i.Createdat,
+		&i.TeamuserID,
 	)
 	return i, err
 }
