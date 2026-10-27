@@ -73,3 +73,9 @@ type CreateTeamUserResponse struct {
 type DeleteTeamUserResponse struct {
 	Message string `json:"message"`
 }
+
+
+
+type GetTeamUsersResponse struct {
+	Users []sqlcpkg.GetAllTeamUsersRow `json:"users"`
+}
