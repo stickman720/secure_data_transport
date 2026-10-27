@@ -433,9 +433,9 @@ response :
 
 
 
-[GET] :‌ /api/teams/user/owner/{jwt-token}
+[GET] :‌ /api/teams/user/owner/
 input :
-    null
+    - Header: "Authorization: Bearer <jwt-token>"
 
 response :
     status 200
@@ -465,9 +465,9 @@ response :
 
 
 
-[GET] /api/teams/user/owner/{jwt-token}/{username}
+[GET] /api/teams/user/owner/{username}
 input :
-    null
+    - Header: "Authorization: Bearer <jwt-token>"
 
 response :
     status 200
@@ -486,4 +486,44 @@ response :
         "code":"FORBIDEN",
         "error":"you haven`t access"
     }
+..............................
+    status 500
+    {
+        "code":"INTERNAL_SERVER_ERROR",
+        "error":"internal server error"
+    }
+
+
+[GET] /api/teams/user/me/login
+
+input :
+    {
+        "token":...
+    }
+
+response :
+    staus 200
+    {
+        "token":...
+        "refresh-token":...
+    }
 ...............................
+    status 400
+    {
+        "code":"UNAUTHORIZED",
+        "error":"invalid token"
+    }
+..............................
+    status 500
+    {
+        "code":"INTERNAL_SERVER_ERROR",
+        "error":"internal server error"
+    }
+...............................
+    status 403
+    {
+        "code":"FORBIDEN",
+        "error":"you haven`t access"
+    }
+
+
