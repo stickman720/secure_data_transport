@@ -47,9 +47,20 @@ func (h *TeamHandler) CreateTeam(c *gin.Context) {
 		return
 	}
 
+	var authead api_schema.AuthHeader
+	if err := c.ShouldBindHeader(&authead); err != nil{
+		c.JSON(http.StatusBadRequest, api_schema.ErrorResponse{
+			Code:  "BAD_REQUEST",
+			Error: "bad request",
+		})
+		return
+	}
+
+
+
 	// --- 2. Validate fields ---
 	req.Team.Title = strings.TrimSpace(req.Team.Title)
-	if req.JWTToken == "" || req.Team.Title == "" {
+	if authead.JWTToken == "" || req.Team.Title == "" {
 		c.JSON(http.StatusBadRequest, api_schema.ErrorResponse{
 			Code:  "BAD_REQUEST",
 			Error: "bad request",
@@ -68,7 +79,7 @@ func (h *TeamHandler) CreateTeam(c *gin.Context) {
 	}
 
 	// --- 3. Authenticate ---
-	claims, err := h.security.ParseToken(req.JWTToken)
+	claims, err := h.security.ParseToken(authead.JWTToken)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, api_schema.ErrorResponse{
 			Code:  "UNAUTHORIZED",
@@ -116,7 +127,15 @@ func (h *TeamHandler) CreateTeam(c *gin.Context) {
 
 
 func (h *TeamHandler) GetTeams(c *gin.Context){
-	token := c.Param("token")
+	var authead api_schema.AuthHeader
+	if err := c.ShouldBindHeader(&authead);err != nil{
+		c.JSON(http.StatusBadRequest , api_schema.ErrorResponse{
+			Code: "BAD_RREQUEST",
+			Error: "bad request",
+		})
+		return
+	}
+	token := authead.JWTToken
 
 	claim , err := h.security.ParseToken(token)
 	if err != nil{
@@ -159,7 +178,15 @@ func (h *TeamHandler) GetTeams(c *gin.Context){
 func (h *TeamHandler) DeleteTeam(c *gin.Context) {
     ctx := c.Request.Context()
 
-    // -------- 1. Extract & validate JWT from path --------
+    // -------- 1. Extract & validate JWT from path -------
+	var authead api_schema.AuthHeader
+	if err := c.ShouldBindHeader(&authead); err != nil {
+		c.JSON(http.StatusBadRequest , api_schema.ErrorResponse{
+			Code: "BAD_REQUEST",
+			Error: "bad request",
+		})
+		return
+	}
     jwtToken := c.Param("token")
     if jwtToken == "" {
         c.JSON(http.StatusUnauthorized, api_schema.ErrorResponse{
@@ -263,7 +290,15 @@ func (h *TeamHandler) CreateUser(c *gin.Context) {
 	// ---------------------------------------------------------
 	// 1. read token from path param
 	// ---------------------------------------------------------
-	tokenStr := c.Param("token")
+	var authead api_schema.AuthHeader
+	if err := c.ShouldBindHeader(&authead);err != nil{
+		c.JSON(http.StatusUnauthorized, api_schema.ErrorResponse{
+			Code:"BAD_REQUEST",
+			Error: "bad request",
+		})
+		return
+	}
+	tokenStr := authead.JWTToken
 	if tokenStr == "" {
 		c.JSON(http.StatusUnauthorized, api_schema.ErrorResponse{
 			Code:  "UNAUTHORIZED",
@@ -370,7 +405,15 @@ func (h *TeamHandler) DeleteUser(c *gin.Context) {
 	// ---------------------------------------------------------
 	// 1. read token from path param
 	// ---------------------------------------------------------
-	tokenStr := c.Param("token")
+	var authead api_schema.AuthHeader
+	if err := c.ShouldBindHeader(&authead);err != nil{
+		c.JSON(http.StatusUnauthorized, api_schema.ErrorResponse{
+			Code:"BAD_REQUEST",
+			Error: "bad request",
+		})
+		return
+	}
+	tokenStr := authead.JWTToken
 	if tokenStr == "" {
 		c.JSON(http.StatusUnauthorized, api_schema.ErrorResponse{
 			Code:  "UNAUTHORIZED",
@@ -454,3 +497,4 @@ func (h *TeamHandler) DeleteUser(c *gin.Context) {
 		Message: "user deleted",
 	})
 }
+

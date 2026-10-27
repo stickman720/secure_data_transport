@@ -11,7 +11,6 @@ import (
 //requests
 //========================================================
 type CreateTeamRequest struct {
-	JWTToken string `json:"token"`
 	Team TeamInput `json:"team"`
 }
 
