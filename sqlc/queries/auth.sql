@@ -7,7 +7,7 @@ RETURNING *;
 
 -- name: CleanRefreshToken :exec
 DELETE FROM refreshtk
-WHERE userid = (SELECT id FROM users WHERE username = $1);
+WHERE userid = (SELECT id FROM users as u WHERE u.username = $1) OR teamuser_id = (SELECT id FROM teamuser as tu WHERE tu.username = $1);
 
 -- name: ValidRefreshToken :one
 SELECT u.id, u.role

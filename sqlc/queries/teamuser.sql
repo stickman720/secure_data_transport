@@ -18,3 +18,22 @@ DELETE FROM teamuser tu
 USING teams t
 WHERE t.id = tu.team_id AND 
 tu.username = $1 AND t.userid = sqlc.arg(owner_id) ;
+
+
+
+-- name: GetAllTeamUsers :many
+SELECT 
+    tu.username,
+    tu.id
+FROM teamuser tu
+JOIN teams t ON tu.team_id = t.id 
+JOIN users u ON u.id = t.userid
+WHERE u.id = $1 AND t.title = $2;
+
+
+-- name: LoginTeamUser :one
+SELECT username , id from teamuser WHERE token = $1;
+
+
+
+

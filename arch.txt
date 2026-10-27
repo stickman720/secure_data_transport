@@ -465,41 +465,12 @@ response :
 
 
 
-[GET] /api/teams/user/owner/{username}
-input :
-    - Header: "Authorization: Bearer <jwt-token>"
-
-response :
-    status 200
-    {
-        "user":user
-    }
-...............................
-    status 400
-    {
-        "code":"UNAUTHORIZED",
-        "error":"invalid token"
-    }
-...............................
-    status 403
-    {
-        "code":"FORBIDEN",
-        "error":"you haven`t access"
-    }
-..............................
-    status 500
-    {
-        "code":"INTERNAL_SERVER_ERROR",
-        "error":"internal server error"
-    }
 
 
 [GET] /api/teams/user/me/login
 
 input :
-    {
-        "token":...
-    }
+    - Header: "Authorization: Bearer <login-token>"
 
 response :
     staus 200

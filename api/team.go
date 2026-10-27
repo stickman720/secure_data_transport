@@ -18,6 +18,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 
@@ -498,3 +499,157 @@ func (h *TeamHandler) DeleteUser(c *gin.Context) {
 	})
 }
 
+
+
+// GetOwnerTeamUsers handles GET /api/teams/user/owner/
+func (h *TeamHandler) GetOwnerTeamUsers(c *gin.Context) {
+	// ---------------------------------------------------------
+	// 1. read token from header
+	// ---------------------------------------------------------
+	var authead api_schema.AuthHeader
+	if err := c.ShouldBindHeader(&authead); err != nil {
+		c.JSON(http.StatusBadRequest, api_schema.ErrorResponse{
+			Code:  "BAD_REQUEST",
+			Error: "bad request",
+		})
+		return
+	}
+	tokenStr := authead.JWTToken
+	if tokenStr == "" {
+		c.JSON(http.StatusUnauthorized, api_schema.ErrorResponse{
+			Code:  "UNAUTHORIZED",
+			Error: "invalid token",
+		})
+		return
+	}
+
+	// ---------------------------------------------------------
+	// 2. parse / validate JWT
+	// ---------------------------------------------------------
+	claims, err := h.security.ParseToken(tokenStr)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, api_schema.ErrorResponse{
+			Code:  "UNAUTHORIZED",
+			Error: "invalid token",
+		})
+		return
+	}
+
+	// ---------------------------------------------------------
+	// 3. authorization: only owners/admins may list their users
+	//    (prevents a "team_user" JWT whose id collides with an
+	//    owner id from reading someone else's team)
+	// ---------------------------------------------------------
+	if claims.Role != "owner" && claims.Role != "admin" {
+		c.JSON(http.StatusForbidden, api_schema.ErrorResponse{
+			Code:  "FORBIDEN",
+			Error: "you haven`t access",
+		})
+		return
+	}
+
+	// ---------------------------------------------------------
+	// 4. fetch every team-user that belongs to a team owned
+	//    by the caller
+	// ---------------------------------------------------------
+	users, err := h.quesries.GetAllTeamUsers(c.Request.Context(), sqlcpkg.GetAllTeamUsersParams{
+		ID: claims.UserID,
+	})
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, api_schema.ErrorResponse{
+			Code:  "INTERNAL_SERVER_ERROR",
+			Error: "internal server error",
+		})
+		return
+	}
+
+	// ---------------------------------------------------------
+	// 5. respond
+	// ---------------------------------------------------------
+	c.JSON(http.StatusOK, api_schema.GetTeamUsersResponse{
+		Users: users,
+	})
+}
+
+
+
+// LoginMeTeamUser handles POST /api/teams/user/me/login
+//
+// A team-user authenticates with the long-lived JWT that was
+// handed out by CreateTeamUser (role = "teamuser") and
+// exchanges it for a short-lived access token + refresh token.
+func (h *TeamHandler) LoginMeTeamUser(c *gin.Context) {
+	// ---------------------------------------------------------
+	// 1. read token from header
+	// ---------------------------------------------------------
+	var tul api_schema.TeamUserLoginHeader
+	if err := c.ShouldBindHeader(&tul); err != nil {
+		c.JSON(http.StatusBadRequest, api_schema.ErrorResponse{
+			Code:  "BAD_REQUEST",
+			Error: "bad request",
+		})
+		return
+	}
+	tokenStr := tul.Token
+	if tokenStr == "" {
+		c.JSON(http.StatusBadRequest, api_schema.ErrorResponse{
+			Code:  "UNAUTHORIZED",
+			Error: "invalid token",
+		})
+		return
+	}
+
+
+	user , err := h.quesries.LoginTeamUser(c.Request.Context() , tokenStr)
+
+
+
+
+	// ---------------------------------------------------------
+	// 4. mint fresh access + refresh tokens
+	// ---------------------------------------------------------
+	accessToken, err := h.security.CreateJWT(user.ID, "teamuser", time.Minute * 15)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, api_schema.ErrorResponse{
+			Code:  "INTERNAL_SERVER_ERROR",
+			Error: "internal server error",
+		})
+		return
+	}
+
+	refresh_token := "refresh-tk->"+uuid.New().String()
+
+	err = h.quesries.CleanRefreshToken(c , user.Username)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError , api_schema.ErrorResponse{
+			Code: "INTERNAL_SERVER_ERROR",
+			Error: "unable to cleane refresh token",
+		})
+		return
+	}
+	
+	crt , ccr := context.WithTimeout(c , time.Second)
+	defer ccr()
+	_ , err =h.quesries.CreateRefreshToken(crt,sqlcpkg.CreateRefreshTokenParams{
+		Token: refresh_token,
+		Userid: pgtype.Int4{ Valid: false},
+		TeamuserID: pgtype.Int4{Int32: user.ID,Valid: true},
+	})
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError , api_schema.ErrorResponse{
+			Code: "INTERNAL_SERVER_ERROR",
+			Error: "unable to create refresh token",
+		})
+		return
+	}
+
+	// ---------------------------------------------------------
+	// 5. respond
+	// ---------------------------------------------------------
+	c.JSON(http.StatusOK, api_schema.LoginResponse{
+		Token:        accessToken,
+		RefreshToken: refresh_token,
+	})
+}

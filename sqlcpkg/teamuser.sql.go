@@ -51,6 +51,46 @@ func (q *Queries) DeleteTeamUser(ctx context.Context, arg DeleteTeamUserParams) 
 	return result.RowsAffected(), nil
 }
 
+const getAllTeamUsers = `-- name: GetAllTeamUsers :many
+SELECT 
+    tu.username,
+    tu.id
+FROM teamuser tu
+JOIN teams t ON tu.team_id = t.id 
+JOIN users u ON u.id = t.userid
+WHERE u.id = $1 AND t.title = $2
+`
+
+type GetAllTeamUsersParams struct {
+	ID    int32
+	Title string
+}
+
+type GetAllTeamUsersRow struct {
+	Username string
+	ID       int32
+}
+
+func (q *Queries) GetAllTeamUsers(ctx context.Context, arg GetAllTeamUsersParams) ([]GetAllTeamUsersRow, error) {
+	rows, err := q.db.Query(ctx, getAllTeamUsers, arg.ID, arg.Title)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetAllTeamUsersRow
+	for rows.Next() {
+		var i GetAllTeamUsersRow
+		if err := rows.Scan(&i.Username, &i.ID); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getTeamAndUser = `-- name: GetTeamAndUser :one
 SELECT 
     t.title,
@@ -84,5 +124,21 @@ func (q *Queries) GetTeamAndUser(ctx context.Context, token string) (GetTeamAndU
 		&i.Username,
 		&i.ID,
 	)
+	return i, err
+}
+
+const loginTeamUser = `-- name: LoginTeamUser :one
+SELECT username , id from teamuser WHERE token = $1
+`
+
+type LoginTeamUserRow struct {
+	Username string
+	ID       int32
+}
+
+func (q *Queries) LoginTeamUser(ctx context.Context, token string) (LoginTeamUserRow, error) {
+	row := q.db.QueryRow(ctx, loginTeamUser, token)
+	var i LoginTeamUserRow
+	err := row.Scan(&i.Username, &i.ID)
 	return i, err
 }

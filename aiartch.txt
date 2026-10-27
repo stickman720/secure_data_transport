@@ -1,0 +1,300 @@
+[POST] : /api/v1/teams/{team-id}/files
+
+input:
+
+- Header: "Authorization: Bearer <jwt-token>"
+- Content-Type: "multipart/form-data"
+
+file : binary file
+
+response:
+
+status 201
+
+{
+    "message": "file uploaded",
+    "file": {
+        "id": "int file id",
+        "team-id": "int team id",
+        "filename": "str filename",
+        "size": "int file size in bytes",
+        "mime-type": "str mime type",
+        "uploaded-by": "int user id",
+        "created-at": "timestamp"
+    }
+}
+
+................................
+
+status 400
+
+{
+    "code": "BAD_REQUEST",
+    "error": "invalid file or request"
+}
+
+................................
+
+status 401
+
+{
+    "code": "UNAUTHORIZED",
+    "error": "invalid token"
+}
+
+................................
+
+status 403
+
+{
+    "code": "FORBIDDEN",
+    "error": "you don't have access to this team"
+}
+
+................................
+
+status 404
+
+{
+    "code": "TEAM_NOT_FOUND",
+    "error": "team not found"
+}
+
+................................
+
+status 413
+
+{
+    "code": "FILE_TOO_LARGE",
+    "error": "file size exceeds the allowed limit"
+}
+
+................................
+
+status 507
+
+{
+    "code": "INSUFFICIENT_STORAGE",
+    "error": "team storage limit exceeded"
+}
+
+................................
+
+status 500
+
+{
+    "code": "INTERNAL_SERVER_ERROR",
+    "error": "internal server error"
+}
+
+
+[GET] : /api/v1/teams/{team-id}/files
+
+input:
+
+- Header: "Authorization: Bearer <jwt-token>"
+- Body: "null"
+
+response:
+
+status 200
+
+{
+    "files": [
+        {
+            "id": "int file id",
+            "filename": "str filename",
+            "size": "int file size in bytes",
+            "mime-type": "str mime type",
+            "uploaded-by": "int user id",
+            "created-at": "timestamp"
+        }
+    ]
+}
+
+................................
+
+status 401
+
+{
+    "code": "UNAUTHORIZED",
+    "error": "invalid token"
+}
+
+................................
+
+status 403
+
+{
+    "code": "FORBIDDEN",
+    "error": "you don't have access to this team"
+}
+
+................................
+
+status 404
+
+{
+    "code": "TEAM_NOT_FOUND",
+    "error": "team not found"
+}
+
+................................
+
+status 500
+
+{
+    "code": "INTERNAL_SERVER_ERROR",
+    "error": "internal server error"
+}
+
+[GET] : /api/v1/teams/{team-id}/files/{file-id}/download
+
+input:
+
+- Header: "Authorization: Bearer <jwt-token>"
+- Body: "null"
+
+response:
+
+status 200
+
+- Returns the binary content of the file.
+- "Content-Type": file MIME type
+- "Content-Disposition": attachment; filename="example.pdf"
+
+................................
+
+status 401
+
+{
+    "code": "UNAUTHORIZED",
+    "error": "invalid token"
+}
+
+................................
+
+status 403
+
+{
+    "code": "FORBIDDEN",
+    "error": "you don't have access to this team"
+}
+
+................................
+
+status 404
+
+{
+    "code": "FILE_NOT_FOUND",
+    "error": "file not found"
+}
+
+................................
+
+status 500
+
+{
+    "code": "INTERNAL_SERVER_ERROR",
+    "error": "internal server error"
+}
+
+[GET] : /api/v1/teams/{team-id}/files/{file-id}/download
+
+input:
+
+- Header: "Authorization: Bearer <jwt-token>"
+- Body: "null"
+
+response:
+
+status 200
+
+- Returns the binary content of the file.
+- "Content-Type": file MIME type
+- "Content-Disposition": attachment; filename="example.pdf"
+
+................................
+
+status 401
+
+{
+    "code": "UNAUTHORIZED",
+    "error": "invalid token"
+}
+
+................................
+
+status 403
+
+{
+    "code": "FORBIDDEN",
+    "error": "you don't have access to this team"
+}
+
+................................
+
+status 404
+
+{
+    "code": "FILE_NOT_FOUND",
+    "error": "file not found"
+}
+
+................................
+
+status 500
+
+{
+    "code": "INTERNAL_SERVER_ERROR",
+    "error": "internal server error"
+}
+
+[DELETE] : /api/v1/teams/{team-id}/files/{file-id}
+
+input:
+
+- Header: "Authorization: Bearer <jwt-token>"
+- Body: "null"
+
+response:
+
+status 204
+
+- No content
+
+................................
+
+status 401
+
+{
+    "code": "UNAUTHORIZED",
+    "error": "invalid token"
+}
+
+................................
+
+status 403
+
+{
+    "code": "FORBIDDEN",
+    "error": "you don't have access to this team"
+}
+
+................................
+
+status 404
+
+{
+    "code": "FILE_NOT_FOUND",
+    "error": "file not found"
+}
+
+................................
+
+status 500
+
+{
+    "code": "INTERNAL_SERVER_ERROR",
+    "error": "internal server error"
+} 
