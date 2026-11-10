@@ -1,26 +1,29 @@
-[POST] : /api/v1/teams/{team-id}/files
+[POST] : /api/v1/teams/files
 
 input:
 
 - Header: "Authorization: Bearer <jwt-token>"
 - Content-Type: "multipart/form-data"
 
-file : binary file
+files : binary files
+
+- ‌Body: {
+    "type":...
+    "filename" : ...
+}
 
 response:
 
 status 201
 
 {
-    "message": "file uploaded",
+    "message": "files uploaded",
     "file": {
         "id": "int file id",
         "team-id": "int team id",
         "filename": "str filename",
         "size": "int file size in bytes",
-        "mime-type": "str mime type",
-        "uploaded-by": "int user id",
-        "created-at": "timestamp"
+        "type": "str mime type",
     }
 }
 
@@ -106,8 +109,6 @@ status 200
             "filename": "str filename",
             "size": "int file size in bytes",
             "mime-type": "str mime type",
-            "uploaded-by": "int user id",
-            "created-at": "timestamp"
         }
     ]
 }
@@ -212,7 +213,7 @@ status 200
 
 - Returns the binary content of the file.
 - "Content-Type": file MIME type
-- "Content-Disposition": attachment; filename="example.pdf"
+- "Content-Disposition"team-name = ... , file-name = ... downloaded-by = ..."
 
 ................................
 
