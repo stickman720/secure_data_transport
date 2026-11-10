@@ -108,7 +108,7 @@ status 200
             "id": "int file id",
             "filename": "str filename",
             "size": "int file size in bytes",
-            "mime-type": "str mime type",
+            "mime-type": "str mime type"
         }
     ]
 }
@@ -299,3 +299,97 @@ status 500
     "code": "INTERNAL_SERVER_ERROR",
     "error": "internal server error"
 } 
+
+
+
+
+[PUT] : /api/v1/teams/{team-id}/files/{file-id}
+
+input:
+
+- Header: "Authorization: Bearer <jwt-token>"
+- Content-Type: "multipart/form-data"
+
+files : binary files
+
+- ‌Body: {
+    "file-id": ...
+}
+
+response:
+
+status 201
+
+{
+    "message": "files uploaded",
+    "file": {
+        "id": "int file id",
+        "team-id": "int team id",
+        "filename": "str filename",
+        "size": "int file size in bytes",
+        "type": "str mime type",
+    }
+}
+
+................................
+
+status 400
+
+{
+    "code": "BAD_REQUEST",
+    "error": "invalid file or request"
+}
+
+................................
+
+status 401
+
+{
+    "code": "UNAUTHORIZED",
+    "error": "invalid token"
+}
+
+................................
+
+status 403
+
+{
+    "code": "FORBIDDEN",
+    "error": "you don't have access to this team"
+}
+
+................................
+
+status 404
+
+{
+    "code": "TEAM_NOT_FOUND",
+    "error": "team not found"
+}
+
+................................
+
+status 413
+
+{
+    "code": "FILE_TOO_LARGE",
+    "error": "file size exceeds the allowed limit"
+}
+
+................................
+
+status 507
+
+{
+    "code": "INSUFFICIENT_STORAGE",
+    "error": "team storage limit exceeded"
+}
+
+................................
+
+status 500
+
+{
+    "code": "INTERNAL_SERVER_ERROR",
+    "error": "internal server error"
+}
