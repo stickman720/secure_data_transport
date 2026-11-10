@@ -34,7 +34,7 @@ func InitTeamRoutes(r *gin.RouterGroup , quesries *sqlcpkg.Queries, cach *widget
 	r.POST("/user/me/login" , th.LoginMeTeamUser)
 
 	r.GET("/" , th.GetTeams)
-	r.GET("/user/owner" , th.GetOwnerTeamUsers)
+	r.GET("/user/owner/:title" , th.GetOwnerTeamUsers)
 
 	r.DELETE("/" , th.DeleteTeam)
 	r.DELETE("/user/owner/" , th.DeleteUser)

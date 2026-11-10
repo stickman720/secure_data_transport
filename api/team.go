@@ -514,6 +514,17 @@ func (h *TeamHandler) GetOwnerTeamUsers(c *gin.Context) {
 		})
 		return
 	}
+
+	title := c.Param("title")
+	if title == ""{
+		c.JSON(http.StatusBadRequest , api_schema.ErrorResponse{
+			Code : "BAD_REQUEST",
+			Error: "enter title in url",
+		})
+		return
+	}
+
+
 	tokenStr := authead.JWTToken
 	if tokenStr == "" {
 		c.JSON(http.StatusUnauthorized, api_schema.ErrorResponse{
@@ -554,6 +565,7 @@ func (h *TeamHandler) GetOwnerTeamUsers(c *gin.Context) {
 	// ---------------------------------------------------------
 	users, err := h.quesries.GetAllTeamUsers(c.Request.Context(), sqlcpkg.GetAllTeamUsersParams{
 		ID: claims.UserID,
+		Title: title,
 	})
 
 	if err != nil {
@@ -595,7 +607,7 @@ func (h *TeamHandler) LoginMeTeamUser(c *gin.Context) {
 	if tokenStr == "" {
 		c.JSON(http.StatusBadRequest, api_schema.ErrorResponse{
 			Code:  "UNAUTHORIZED",
-			Error: "invalid token",
+			Error: "token is empty",
 		})
 		return
 	}
