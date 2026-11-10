@@ -8,6 +8,15 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type File struct {
+	ID       int32
+	TeamID   pgtype.Int4
+	Filename pgtype.Text
+	Size     pgtype.Int4
+	Type     pgtype.Text
+	Address  pgtype.Text
+}
+
 type Refreshtk struct {
 	ID         int32
 	Userid     pgtype.Int4
