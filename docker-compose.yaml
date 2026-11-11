@@ -1,0 +1,115 @@
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: sdt-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: sdt_user
+      POSTGRES_PASSWORD: sdt_dev_password
+      POSTGRES_DB: sdt_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - backend
+
+  redis:
+    image: redis:8-alpine
+    container_name: sdt-redis
+    restart: unless-stopped
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+      - --requirepass
+      - "${REDIS_PASSWORD:?REDIS_PASSWORD is required}"
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - 'REDISCLI_AUTH="$${REDIS_PASSWORD}" redis-cli ping | grep -q PONG'
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - backend
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: sdt-mailpit
+    command: ["--webroot", "/mailpit/"]
+    restart: unless-stopped
+    networks:
+      - backend
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sdt-app
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      PORT: "8080"
+      DB_URL: "postgres://sdt_user:sdt_dev_password@db:5432/sdt_db?sslmode=disable"
+      REDIS_ADDR: redis:6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      SMTP_HOST: mailpit
+      SMTP_PORT: "1025"
+    expose:
+      - "8080"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - backend
+
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: sdt-nginx
+    restart: unless-stopped
+    ports:
+      - "8976:80"
+    depends_on:
+      - app
+      - mailpit
+      - minio
+    networks:
+      - backend
+
+
+
+  minio:
+    image: alpine/minio:RELEASE.2025-10-15T17-29-55Z
+    container_name: sdt-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: sdt_user
+      MINIO_ROOT_PASSWORD: sdt_dev_password
+      MINIO_BROWSER_REDIRECT_URL: http://localhost:8976/minio-web/
+    volumes:
+      - minio_data:/data:Z
+    networks:
+      - backend
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+
+networks:
+  backend:
+    driver: bridge
