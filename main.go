@@ -3,13 +3,14 @@ package main
 import (
 	"context"
 	"secure_data_transport/api"
+	"secure_data_transport/config"
 	"secure_data_transport/core"
 	sqlcpkg "secure_data_transport/sqlcpkg"
 	"secure_data_transport/widget"
-    "github.com/jackc/pgx/v5"
+
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5"
 	_ "modernc.org/sqlite"
-	"secure_data_transport/config"
 )
 
 
@@ -59,6 +60,12 @@ func startapp(){
 	tg := r.Group("/api/teams")
 	api.InitTeamRoutes(tg , queries , &cach , mailer , security , conf)
 	
+
+	var filehandler widget.FileHandler 
+	filehandler , err = widget.NewMinioHandler("http://minio:9000" , "sdt_user" , "sdt_dev_password")
+
+	
+	_ = filehandler
 
 
 	r.Run(":8080")
